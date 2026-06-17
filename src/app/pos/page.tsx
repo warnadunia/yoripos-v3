@@ -1,6 +1,6 @@
 'use client';
 
-// src/app/pos/page.tsx (Full Fixed - POS Interface Integrated with Checkout API)
+// src/app/pos/page.tsx (Full Fixed - Bulletproof Hydration Guard)
 import { useState, useEffect } from 'react';
 
 interface Category {
@@ -22,6 +22,9 @@ interface CartItem {
 }
 
 export default function PosPage() {
+  // Guard untuk mencegah Hydration Mismatch dari Autofill Browser / Extension
+  const [hasMounted, setHasMounted] = useState(false);
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -29,6 +32,11 @@ export default function PosPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Trigger mount di client-side
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // 1. Load Data Awal
   async function loadInitialData() {
@@ -51,11 +59,15 @@ export default function PosPage() {
   }
 
   useEffect(() => {
-    loadInitialData();
-  }, []);
+    if (hasMounted) {
+      loadInitialData();
+    }
+  }, [hasMounted]);
 
   // 2. Filter & Live Search
   useEffect(() => {
+    if (!hasMounted) return;
+
     async function filterProducts() {
       let url = '/api/products?';
       if (selectedCategory) url += `category_id=${selectedCategory}&`;
@@ -75,7 +87,7 @@ export default function PosPage() {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, hasMounted]);
 
   // 3. Cart Logic Handles
   const addToCart = (product: Product) => {
@@ -107,7 +119,7 @@ export default function PosPage() {
     return cart.reduce((total, item) => total + Number(item.product.price_sell) * item.quantity, 0);
   };
 
-  // 4. LOGIKA PROSES SUBMIT CHECKOUT KASIR
+  // 4. Logika Proses Submit Checkout Kasir
   const handleCheckoutSubmit = async () => {
     if (cart.length === 0 || isSubmitting) return;
 
@@ -123,8 +135,8 @@ export default function PosPage() {
 
       if (response.ok && result.success) {
         alert(`🎉 TRANSAKSI BERHASIL!\nNomor Nota: ${result.data.invoice_no}\nTotal: ${formatRupiah(result.data.total_amount)}`);
-        setCart([]); // Reset keranjang belanja kasir menjadi kosong bersih
-        await loadInitialData(); // Ambil ulang data katalog biar sisa stok paling update langsung muncul di UI
+        setCart([]); 
+        await loadInitialData(); 
       } else {
         alert(`❌ Gagal Memproses Transaksi:\n${result.error}`);
       }
@@ -139,6 +151,15 @@ export default function PosPage() {
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
   };
+
+  // Jika belum fully mounted di browser, tampilkan placeholder minimalist loader agar sinkron dengan SSR
+  if (!hasMounted) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center font-sans">
+        <p className="text-sm text-stone-400 animate-pulse">Menyiapkan Engine Kasir YoriPOS...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800 flex flex-col md:flex-row font-sans">

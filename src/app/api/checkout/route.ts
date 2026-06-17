@@ -1,4 +1,4 @@
-// src/app/api/checkout/route.ts (Full Fixed - FIFO Stock Batch Checkout Engine)
+// src/app/api/checkout/route.ts (Full Fixed - Synchronized with schema.prisma)
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
@@ -22,20 +22,21 @@ export async function POST(request: NextRequest) {
       const randomId = Math.floor(1000 + Math.random() * 9000);
       const invoiceNo = `INV-${dateStr}-${randomId}`;
 
-      // B. HITUNG TOTAL NILAI TRANSAKSI DI SISI SERVER (Mencegah Manipulasi Harga Client-side)
+      // B. HITUNG TOTAL NILAI TRANSAKSI DI SISI SERVER
       let grandTotal = 0;
       for (const item of cart) {
         grandTotal += Number(item.product.price_sell) * item.quantity;
       }
 
-      // C. SIMPAN NOTA UTAMA (Tabel Sale)
-      // Mencocokkan nilai enum dari schema.prisma: DocStatus (lunas) & OrderType (dine_in)
+      // C. SIMPAN NOTA UTAMA (Tabel Sale - Sesuai Skema Kolom Prisma Lu)
       const sale = await tx.sale.create({
         data: {
           invoice_no: invoiceNo,
           total_amount: grandTotal,
-          status: 'lunas',
-          order_type: 'dine_in',
+          amount_paid: grandTotal, // Dianggap langsung lunas bayar cash pas
+          status: 'lunas',         // Menggunakan Enum DocStatus
+          type: 'dine_in',         // Menggunakan nama kolom asli 'type' (Enum OrderType)
+          payment_method: 'CASH',
         },
       });
 
@@ -44,44 +45,33 @@ export async function POST(request: NextRequest) {
         const productId = item.product.id;
         let qtyNeeded = item.quantity;
         const priceSell = Number(item.product.price_sell);
-        const subtotal = priceSell * qtyNeeded;
 
-        // 1. Suntik Data ke Tabel SaleDetail
-        await tx.saleDetail.create({
-          data: {
-            sale_id: sale.id,
-            product_id: productId,
-            quantity: qtyNeeded,
-            price_sell: priceSell,
-            subtotal: subtotal,
-          },
-        });
-
-        // 2. Ambil Antrean Batch Stok Berdasarkan Tanggal Masuk / ID Terlama (FIFO)
-        // Catatan: Jika nama kolom sisa stok di skema asli kamu bukan 'qty_remaining', sesuaikan bagian ini.
+        // 1. Ambil Antrean Batch Stok Berdasarkan ID Terlama / Tanggal Masuk (FIFO)
         const activeBatches = await tx.stockBatch.findMany({
           where: {
             product_id: productId,
             qty_remaining: { gt: 0 }, 
           },
           orderBy: {
-            id: 'asc', // ID terkecil/terlama diproses duluan
+            id: 'asc', // ID terkecil/terlama diproses duluan (FIFO)
           },
         });
 
-        // Hitung total stok tersedia dari seluruh batch yang aktif
-        const totalAvailableStock = activeBatches.reduce((sum, b) => sum + Number(b.qty_remaining), 0);
+        // Hitung total stok tersedia dari seluruh kumpulan batch aktif
+        const totalAvailableStock = activeBatches.reduce((sum, b) => sum + b.qty_remaining, 0);
         if (totalAvailableStock < qtyNeeded) {
           throw new Error(`Stok produk "${item.product.name}" tidak mencukupi! Dibutuhkan: ${qtyNeeded}, Tersedia: ${totalAvailableStock}`);
         }
 
-        // 3. Kurangi Stok Per Batch Secara Berurutan
+        // 2. Kurangi Stok Per Batch Secara Berurutan (FIFO)
         for (const batch of activeBatches) {
           if (qtyNeeded <= 0) break;
 
-          const currentBatchQty = Number(batch.qty_remaining);
+          const currentBatchQty = batch.qty_remaining;
+          let qtyToDeduct = 0;
 
           if (currentBatchQty >= qtyNeeded) {
+            qtyToDeduct = qtyNeeded;
             // Sisa stok di batch saat ini sangat cukup
             await tx.stockBatch.update({
               where: { id: batch.id },
@@ -89,16 +79,29 @@ export async function POST(request: NextRequest) {
             });
             qtyNeeded = 0; // Kebutuhan terpenuhi total
           } else {
-            // Stok di batch ini kurang, habiskan batch ini lalu lanjut ke batch berikutnya
+            qtyToDeduct = currentBatchQty;
+            // Stok di batch ini kurang, habiskan isi batch ini lalu lanjut ke batch berikutnya
             await tx.stockBatch.update({
               where: { id: batch.id },
               data: { qty_remaining: 0 },
             });
             qtyNeeded -= currentBatchQty; // Kurangi sisa utang kuantitas
           }
+
+          // 3. Suntik Data ke Tabel SaleDetail per pecahan batch (Sangat presisi untuk Audit HPP/COGS)
+          await tx.saleDetail.create({
+            data: {
+              sale_id: sale.id,
+              product_id: productId,
+              stock_batch_id: batch.id,            // Mencatat ID Batch asal muasal barang
+              qty: qtyToDeduct,                    // Kolom asli: qty
+              price_buy_at_sale: batch.price_buy,  // Mengunci HPP historis dari batch terkait
+              price_sell_at_sale: priceSell,       // Mengunci harga jual saat transaksi
+            },
+          });
         }
 
-        // 4. Update Agregat Total Stok Utama Pada Tabel Product
+        // 4. Update Agregat Total Stok Utama Pada Tabel Master Product
         await tx.product.update({
           where: { id: productId },
           data: {
