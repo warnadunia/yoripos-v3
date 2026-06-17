@@ -1,7 +1,10 @@
-/* Sintaks baru untuk Tailwind CSS v4 */
 @import "tailwindcss";
 
 /* Pasang directive @config ini agar Tailwind v4 tetap membaca file konfigurasi lokal lu */
 @config "../../tailwind.config.ts";
 
-/* ... sisa css custom lu di bawahnya jika ada ... */
+@layer base {
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
