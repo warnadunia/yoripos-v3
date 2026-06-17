@@ -1,6 +1,6 @@
 'use client';
 
-// src/app/pos/page.tsx (Full Fixed - POS Minimalist Cashier Core Interface)
+// src/app/pos/page.tsx (Full Fixed - POS Interface Integrated with Checkout API)
 import { useState, useEffect } from 'react';
 
 interface Category {
@@ -28,32 +28,33 @@ export default function PosPage() {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Ambil Data Kategori & Produk Awal dari API (Fixed Syntax Typo Here)
-  useEffect(() => {
-    async function initPOS() {
-      try {
-        setLoading(true);
-        const [catRes, prodRes] = await Promise.all([
-          fetch('/api/categories'),
-          fetch('/api/products')
-        ]);
-        
-        const catData = await catRes.json();
-        const prodData = await prodRes.json();
+  // 1. Load Data Awal
+  async function loadInitialData() {
+    try {
+      setLoading(true);
+      const [catRes, prodRes] = await Promise.all([
+        fetch('/api/categories'),
+        fetch('/api/products')
+      ]);
+      const catData = await catRes.json();
+      const prodData = await prodRes.json();
 
-        if (catData.success) setCategories(catData.data);
-        if (prodData.success) setProducts(prodData.data);
-      } catch (error) {
-        console.error('Gagal memuat data POS:', error);
-      } finally {
-        setLoading(false);
-      }
+      if (catData.success) setCategories(catData.data);
+      if (prodData.success) setProducts(prodData.data);
+    } catch (error) {
+      console.error('Gagal memuat data POS:', error);
+    } finally {
+      setLoading(false);
     }
-    initPOS();
-  }, []); // <-- Sudah aman, murni, dan dijamin lolos build compiler!
+  }
 
-  // 2. Fetch Ulang Produk Jika Filter Kategori / Pencarian Berubah
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  // 2. Filter & Live Search
   useEffect(() => {
     async function filterProducts() {
       let url = '/api/products?';
@@ -69,7 +70,6 @@ export default function PosPage() {
       }
     }
     
-    // Berikan sedikit jeda waktu panggil jika user sedang mengetik (basic debounce)
     const delayDebounce = setTimeout(() => {
       filterProducts();
     }, 300);
@@ -77,7 +77,7 @@ export default function PosPage() {
     return () => clearTimeout(delayDebounce);
   }, [selectedCategory, searchQuery]);
 
-  // 3. Logika Manajemen Keranjang Belanja (Cart Logic)
+  // 3. Cart Logic Handles
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.product.id === product.id);
@@ -95,24 +95,47 @@ export default function PosPage() {
       prevCart
         .map((item) => {
           if (item.product.id === productId) {
-            const newQty = item.quantity + amount;
-            return { ...item, quantity: newQty };
+            return { ...item, quantity: item.quantity + amount };
           }
           return item;
         })
-        .filter((item) => item.quantity > 0) // Jika qty 0, otomatis ditendang dari keranjang
+        .filter((item) => item.quantity > 0)
     );
   };
 
-  // 4. Kalkulasi Total Belanjaan
   const calculateTotal = () => {
-    return cart.reduce((total, item) => {
-      const price = Number(item.product.price_sell);
-      return total + price * item.quantity;
-    }, 0);
+    return cart.reduce((total, item) => total + Number(item.product.price_sell) * item.quantity, 0);
   };
 
-  // Helper Format Rupiah
+  // 4. LOGIKA PROSES SUBMIT CHECKOUT KASIR
+  const handleCheckoutSubmit = async () => {
+    if (cart.length === 0 || isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cart }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(`🎉 TRANSAKSI BERHASIL!\nNomor Nota: ${result.data.invoice_no}\nTotal: ${formatRupiah(result.data.total_amount)}`);
+        setCart([]); // Reset keranjang belanja kasir menjadi kosong bersih
+        await loadInitialData(); // Ambil ulang data katalog biar sisa stok paling update langsung muncul di UI
+      } else {
+        alert(`❌ Gagal Memproses Transaksi:\n${result.error}`);
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Terjadi kendala jaringan saat menghubungkan ke database server.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
   };
@@ -120,10 +143,8 @@ export default function PosPage() {
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800 flex flex-col md:flex-row font-sans">
       
-      {/* BAGIAN KIRI: KATALOG & NAVIGASI (70% Lebar Layar) */}
+      {/* LEFT CONTENT: CATALOGUE */}
       <div className="flex-1 p-6 flex flex-col space-y-6">
-        
-        {/* Header & Kolom Pencarian */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-stone-900">YoriPOS V3</h1>
@@ -140,14 +161,12 @@ export default function PosPage() {
           </div>
         </div>
 
-        {/* Tab Filter Kategori */}
+        {/* Categories Tab */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
           <button
             onClick={() => setSelectedCategory(null)}
             className={`px-4 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition ${
-              selectedCategory === null
-                ? 'bg-stone-900 text-white shadow-sm'
-                : 'bg-white border border-stone-200 hover:bg-stone-100 text-stone-600'
+              selectedCategory === null ? 'bg-stone-900 text-white shadow-sm' : 'bg-white border border-stone-200 hover:bg-stone-100 text-stone-600'
             }`}
           >
             Semua Menu
@@ -157,9 +176,7 @@ export default function PosPage() {
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-4 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition ${
-                selectedCategory === cat.id
-                  ? 'bg-stone-900 text-white shadow-sm'
-                  : 'bg-white border border-stone-200 hover:bg-stone-100 text-stone-600'
+                selectedCategory === cat.id ? 'bg-stone-900 text-white shadow-sm' : 'bg-white border border-stone-200 hover:bg-stone-100 text-stone-600'
               }`}
             >
               {cat.name}
@@ -167,7 +184,7 @@ export default function PosPage() {
           ))}
         </div>
 
-        {/* Grid Item Katalog Produk */}
+        {/* Product Grid */}
         {loading ? (
           <div className="flex-1 flex items-center justify-center py-20 text-stone-400 text-sm">
             Sedang mengambil amunisi menu dari TiDB Cloud...
@@ -206,10 +223,8 @@ export default function PosPage() {
         )}
       </div>
 
-      {/* BAGIAN KANAN: SIDEBAR KERANJANG BELANJA (30% Lebar Layar) */}
+      {/* RIGHT CONTENT: CART SIDEBAR */}
       <div className="w-full md:w-96 bg-white border-t md:border-t-0 md:border-l border-stone-200 flex flex-col h-auto md:h-screen sticky top-0">
-        
-        {/* Header Keranjang */}
         <div className="p-4 border-b border-stone-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className="font-bold text-stone-900">Keranjang Belanja</h2>
@@ -224,7 +239,7 @@ export default function PosPage() {
           )}
         </div>
 
-        {/* List Item Belanjaan */}
+        {/* Cart Item List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[250px] md:min-h-0">
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-stone-400 space-y-2 py-10">
@@ -239,7 +254,6 @@ export default function PosPage() {
                   <p className="text-[11px] text-stone-500">{formatRupiah(Number(item.product.price_sell))}</p>
                 </div>
                 
-                {/* Tombol Pengatur Jumlah Kuantitas */}
                 <div className="flex items-center border border-stone-200 rounded-lg overflow-hidden bg-stone-50 shrink-0">
                   <button
                     onClick={() => updateQuantity(item.product.id, -1)}
@@ -262,7 +276,7 @@ export default function PosPage() {
           )}
         </div>
 
-        {/* Ringkasan & Tombol Eksekusi Bayar */}
+        {/* Grand Total & Submission Button */}
         <div className="p-4 bg-stone-50/80 border-t border-stone-200/60 space-y-4">
           <div className="flex items-center justify-between font-semibold text-stone-900">
             <span>Total Bayar</span>
@@ -270,15 +284,15 @@ export default function PosPage() {
           </div>
           
           <button
-            disabled={cart.length === 0}
+            disabled={cart.length === 0 || isSubmitting}
             className={`w-full py-3 rounded-xl font-medium text-sm transition shadow-sm ${
-              cart.length > 0
+              cart.length > 0 && !isSubmitting
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer active:scale-[0.99]'
                 : 'bg-stone-200 text-stone-400 cursor-not-allowed'
             }`}
-            onClick={() => alert('Siap merakit API Simpan Nota & Potong Stok Batches!')}
+            onClick={handleCheckoutSubmit}
           >
-            Proses Transaksi (Checkout)
+            {isSubmitting ? 'Memproses Transaksi Aman...' : 'Proses Transaksi (Checkout)'}
           </button>
         </div>
 
