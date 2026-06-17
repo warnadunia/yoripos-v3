@@ -1,6 +1,9 @@
+/** @type {import('postcss-load-config').Config} */
 const config = {
   plugins: {
-    "@tailwindcss/postcss": {},
+    // Ganti 'tailwindcss' lama dengan package baru khusus v4 ini
+    '@tailwindcss/postcss': {},
+    autoprefixer: {},
   },
 };
 

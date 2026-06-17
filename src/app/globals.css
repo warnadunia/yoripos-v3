@@ -1,10 +1,7 @@
-/* app/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Sintaks baru untuk Tailwind CSS v4 */
+@import "tailwindcss";
 
-@layer base {
-  body {
-    -webkit-tap-highlight-color: transparent;
-  }
-}
+/* Pasang directive @config ini agar Tailwind v4 tetap membaca file konfigurasi lokal lu */
+@config "../../tailwind.config.ts";
+
+/* ... sisa css custom lu di bawahnya jika ada ... */
