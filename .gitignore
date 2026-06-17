@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
+
+# .gitignore (Wajib Ada Sebelum Git Commit!)
+node_modules
+.next
+.env
+.env.local
+package-lock.json
