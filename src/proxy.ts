@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || 'asayori_super_secret_key_2026_v3');
+const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || 'yoripos_super_secret_key_v3_2026_xYz');
 
 export async function proxy(request: NextRequest) {
   const token = request.cookies.get('asayori_auth_token')?.value;

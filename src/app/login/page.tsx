@@ -36,7 +36,7 @@ export default function LoginPage() {
         throw new Error(data.error || 'Gagal masuk ke sistem.');
       }
 
-      // Jika sukses, arahkan ke dashboard utama / Command Center
+      // Jika sukses, arahkan ke portal utama
       router.push('/');
       router.refresh();
     } catch (err: any) {

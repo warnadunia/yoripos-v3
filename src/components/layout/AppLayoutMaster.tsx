@@ -23,7 +23,10 @@ export default function AppLayoutMaster({ children }: AppLayoutMasterProps) {
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
+    const t = setTimeout(() => {
+      setHasMounted(true);
+    }, 0);
+    return () => clearTimeout(t);
   }, []);
 
   if (!hasMounted) {

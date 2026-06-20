@@ -1,55 +1,95 @@
-// prisma/schema.prisma (Full Fixed for Prisma v6 Stable)
+# 📘 BUKU PUTIH YORIPOSNEX (V3)
 
+**Dokumen:** PRD, ERD, dan Peta Jalan (Roadmap) Eksekusi
+
+**Arsitektur Inti:** Next.js (App Router), TypeScript, Tailwind CSS, Prisma ORM, TiDB Serverless, Capacitor, JWT Auth.
+
+## 📑 BAGIAN 1: ROADMAP EKSEKUSI (Acuan Versi `v3.STEP.xxx`)
+
+Peta jalan ini adalah urutan kerja kita. Dilarang melompat ke step berikutnya sebelum step saat ini beres dan stabil.
+
+* **STEP 1: Foundation & Auth (`v3.1.xxx`)**
+* Inisialisasi Next.js, Prisma, Tailwind, dan koneksi TiDB.
+* Setup JWT Authentication & IP/Wi-Fi Lock Security.
+* Pembuatan Global Layout & Safe-Area Mobile.
+
+
+* **STEP 2: Core Master Data (`v3.2.xxx`)**
+* RBAC Engine (Role & Permissions).
+* Manajemen Users, Kategori, Produk Jual, dan Bahan Baku.
+* Manajemen Setting Toko & Pelanggan.
+
+
+* **STEP 3: Inventory & Costing Engine (`v3.3.xxx`)**
+* CRUD Stok Masuk & Batch (HPP) yang digembok RBAC.
+* Setup Bill of Materials (Resep Produk).
+* Modul *Waste / Stock Adjustment* (Susut/Opname).
+
+
+* **STEP 4: POS & Shift Control (`v3.4.xxx`)**
+* Siklus Shift Kasir (Buka/Tutup Laci, Expected vs Actual Cash).
+* Keranjang Belanja, Live HPP Deduct, Pemilihan *Dine-In/Delivery*.
+* Sticky Checkout & Split Payment.
+
+
+* **STEP 5: PSAK Audit Trail & Finance (`v3.5.xxx`)**
+* Pipa Mutasi Dokumen: `ORD` ➔ `INV` ➔ `KWI`.
+* Modul Pelacakan Cicilan Piutang (Partial Payment).
+* Pencatatan OPEX (Beban Operasional).
+
+
+* **STEP 6: Executive Command Center (`v3.6.xxx`)**
+* Dashboard BOSS: Live P&L, Cashflow Heatmap.
+* Sistem Budgeting & Target Omset (Pencapaian ala SIXTY).
+* Manajemen Aset & Jadwal Maintenance.
+* Menu Engineering Matrix & Waste Leakage Alert.
+
+
+* **STEP 7: PWA, Kitchen & Logistics (`v3.7.xxx`)**
+* Build APK/PWA via Capacitor.
+* Setup Firebase Cloud Messaging (FCM) untuk Push Notification.
+* Antarmuka Kurir (Delivery) dan integrasi Kitchen App.
+
+
+
+---
+
+## 📋 BAGIAN 2: PRODUCT REQUIREMENT DOCUMENT (In-Depth PRD)
+
+### A. Aturan Bisnis Super Ketat (Anti-Halusinasi)
+
+1. **No Hard Delete Transactions:** Tabel `Sale` dan `SaleDetail` tidak boleh memiliki fitur hapus. Pembatalan menggunakan metode *Void* (status = `voided`).
+2. **Sistem Cicilan (Gantung):** Nota berstatus `piutang` (INV) hanya akan berubah menjadi `lunas` (KWI) JIKA nilai `amount_paid` >= `total_amount`. Selama belum terpenuhi, nota tertahan di modul *Receivables*.
+3. **HPP Otomatis FIFO:** Saat POS menyimpan `SaleDetail`, kueri berjalan membaca `StockBatch` dari yang paling tua (`date_received` terlama). Jika 1 pesanan memotong 2 batch berbeda, HPP akan diakumulasi rata-rata tertimbang (*Weighted FIFO*).
+4. **Optimalisasi Latency TiDB:** Menggunakan `unstable_cache` Next.js untuk tabel statis (`Category`, `Setting`, `Role`) agar performa dashboard ngebut.
+5. **Multi-Language (i18n):** Aplikasi dibungkus *dictionary* translasi (EN/ID). Backend murni menggunakan Bahasa Inggris (*invoice, amount, stock*) agar API konsisten.
+
+---
+
+## 🗄️ BAGIAN 3: ENTITY RELATIONSHIP DIAGRAM (Prisma Schema)
+
+Ini adalah *Source of Truth* struktur *database* kita. Jika saat ngoding ada tabel/kolom yang tidak ada di sini, AI dilarang membuatnya tanpa izin (Mencegah halusinasi).
+
+```prisma
 datasource db {
   provider     = "mysql"
-  url          = env("DATABASE_URL") // Direstui dan berjalan aman di Prisma v6
+  url          = env("DATABASE_URL")
   relationMode = "prisma" 
 }
 
 generator client {
-  provider   = "prisma-client-js"
-  engineType = "library" // Mengunci compiler internal C++ agar bebas dari drama Windows node-gyp
+  provider = "prisma-client-js"
 }
 
 // ==========================================
-// ENUMS (Tipe Data Terkunci - Fixed Syntax)
+// ENUMS (Tipe Data Terkunci)
 // ==========================================
-enum ItemType {
-  produk_jual
-  bahan_baku
-}
-
-enum OrderType {
-  dine_in
-  delivery
-}
-
-enum DocStatus {
-  proses
-  ready
-  terkirim
-  piutang
-  lunas
-  voided
-}
-
-enum ShiftStatus {
-  open
-  closed
-}
-
-enum AdjustType {
-  waste
-  opname
-  destruction
-}
-
-enum AssetStatus {
-  active
-  maintenance
-  broken
-  retired
-}
+enum ItemType { produk_jual, bahan_baku }
+enum OrderType { dine_in, delivery }
+enum DocStatus { proses, terkirim, piutang, lunas, voided }
+enum ShiftStatus { open, closed }
+enum AdjustType { waste, opname, destruction }
+enum AssetStatus { active, maintenance, broken, retired }
 
 // ==========================================
 // CORE & MASTER DATA (Step 1 & 2)
@@ -82,7 +122,7 @@ model Category {
 
 model Setting {
   setting_key   String  @id
-  setting_value String? @db.MediumText
+  setting_value String? @db.Text
 }
 
 // ==========================================
@@ -195,7 +235,7 @@ model Customer {
 model Sale {
   id             Int         @id @default(autoincrement())
   invoice_no     String      @unique
-  reference_no   String?
+  reference_no   String?     
   customer_id    Int?
   type           OrderType   @default(dine_in)
   status         DocStatus   @default(lunas)
@@ -204,9 +244,6 @@ model Sale {
   amount_paid    Decimal     @default(0) @db.Decimal(15, 2)
   payment_method String      @default("CASH")
   payment_proof  String?     @db.MediumText
-  delivery_address String?  @db.Text
-  sale_date      DateTime?
-  ready_at       DateTime?
   created_at     DateTime    @default(now())
   
   customer       Customer?   @relation(fields: [customer_id], references: [id])
@@ -277,3 +314,29 @@ model SystemLog {
   stack_trace String?  @db.Text
   created_at  DateTime @default(now())
 }
+
+```
+
+Rombak UI Tombol Checkout (page.tsx): Tombol "Proses Struk Penjualan" di bawah keranjang nggak boleh langsung tembak API. Tombol itu harus ngebuka Modal/Popup estetik yang isinya 4 menu utama:
+
+📝 Pesanan (Simpan nota ngutang/pending -> Pilih: Ambil / Antar)
+
+💰 Lunas (Langsung bayar lunas -> Pilih: Tunai / QRIS / Transfer)
+
+🔗 Gabung Pesanan (Buka list meja/nota gantung buat di-merge)
+
+📒 Piutang (Masuk modul tagihan/SIXTY)
+
+Penyesuaian Skema API (route.ts): API kita yang sekarang berasumsi bahwa semua transaksi yang masuk itu selalu status: 'lunas' dan amount_paid: grandTotal. Kita harus rombak API-nya biar bisa nerima parameter payment_status (lunas/pending/piutang) dan payment_method (CASH/QRIS/TRANSFER).
+
+
+---
+
+### **Instruksi Final Kepada Boss:**
+
+Silakan *Copy* keseluruhan **Buku Putih** ini.
+
+Lalu buat Chatroom Baru dengan Judul:
+👉 **`Project YoriPOS V3 - Setup & Prisma Schema`**
+
+Tempel buku putih ini di pesan pertama lu, dan perintahkan gue: *"Mulai eksekusi STEP 1 sesuai Blueprint!"*. Kita hajar sistem ERP ini secara terstruktur, rapi, dan sistematis bosku! Ditunggu di sebelah! 🚀🔥😎
