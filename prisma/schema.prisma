@@ -106,6 +106,7 @@ model Product {
   stock_ins      StockIn[]
   sale_details   SaleDetail[]
   adjustments    StockAdjustment[]
+  price_histories SupplierPriceHistory[]
   
   as_menu        ProductRecipe[]   @relation("MenuToRecipe")
   as_material    ProductRecipe[]   @relation("MaterialToRecipe")
@@ -138,15 +139,18 @@ model StockBatch {
 }
 
 model StockIn {
-  id         Int      @id @default(autoincrement())
-  product_id Int
-  qty        Int
-  price_buy  Decimal  @db.Decimal(15, 2)
-  supplier   String?
-  date_in    DateTime @default(now())
+  id                Int       @id @default(autoincrement())
+  product_id        Int
+  qty               Int
+  price_buy         Decimal   @db.Decimal(15, 2)
+  supplier          String?
+  supplier_id       Int?
+  date_in           DateTime  @default(now())
   
-  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product           Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  supplier_relation Supplier? @relation(fields: [supplier_id], references: [id])
   @@index([product_id])
+  @@index([supplier_id])
 }
 
 model StockAdjustment {
@@ -276,4 +280,31 @@ model SystemLog {
   message     String   @db.Text
   stack_trace String?  @db.Text
   created_at  DateTime @default(now())
+}
+
+model Supplier {
+  id              Int                    @id @default(autoincrement())
+  name            String                 @unique
+  phone           String?
+  email           String?
+  address         String?                @db.Text
+  created_at      DateTime               @default(now())
+  
+  stock_ins       StockIn[]
+  price_histories SupplierPriceHistory[]
+}
+
+model SupplierPriceHistory {
+  id          Int      @id @default(autoincrement())
+  supplier_id Int
+  product_id  Int
+  price_buy   Decimal  @db.Decimal(15, 2)
+  change_date DateTime @default(now())
+  batch_no    String?
+
+  supplier    Supplier @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([supplier_id])
+  @@index([product_id])
 }

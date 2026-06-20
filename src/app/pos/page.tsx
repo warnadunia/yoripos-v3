@@ -4,7 +4,7 @@ type ViewMode = 'OPERATOR' | 'BISNIS';
 type OperatorRole = 'KASIR' | 'DAPUR' | 'KURIR';
 type MobileTab = 'KATALOG' | 'KERANJANG' | 'AMBIL';
 type FulfillmentMethod = 'AMBIL_TOKO' | 'DIKIRIM';
-type BizTab = 'RINGKASAN' | 'STOK' | 'RESEP' | 'ORDERS' | 'PIUTANG' | 'RIWAYAT' | 'PENGATURAN' | 'KONSUMEN' | 'PENGELUARAN';
+type BizTab = 'RINGKASAN' | 'STOK' | 'RESEP' | 'ORDERS' | 'PIUTANG' | 'RIWAYAT' | 'PENGATURAN' | 'KONSUMEN' | 'PENGELUARAN' | 'SUPPLIER';
 interface Category { id: number; name: string; }
 interface Product { id: number; sku: string; name: string; price_sell: string | number; category_id: number; total_stock: number; image_url?: string | null; category?: { id: number; name: string }; }
 interface CartItem { product: Product; quantity: number; }
@@ -120,6 +120,18 @@ export default function PosPage() {
   const [showSuggestionsDropdown, setShowSuggestionsDropdown] = useState(false);
   const menuPhotoFileRef = useRef<HTMLInputElement>(null);
   const editMenuPhotoFileRef = useRef<HTMLInputElement>(null);
+
+  // ─── Supplier & Price History Statistics States ───
+  const [supplierList, setSupplierList] = useState<any[]>([]);
+  const [isLoadingSuppliers, setIsLoadingSuppliers] = useState(false);
+  const [supplierSearchQuery, setSupplierSearchQuery] = useState('');
+  const [showSupplierForm, setShowSupplierForm] = useState(false);
+  const [supplierForm, setSupplierForm] = useState({ id: null as number | null, name: '', phone: '', email: '', address: '' });
+  
+  const [priceHistoryList, setPriceHistoryList] = useState<any[]>([]);
+  const [isLoadingPriceHistory, setIsLoadingPriceHistory] = useState(false);
+  const [priceHistoryProductFilter, setPriceHistoryProductFilter] = useState('');
+  const [priceHistorySupplierFilter, setPriceHistorySupplierFilter] = useState('');
 
   // Sesi Shift & Riwayat
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -313,7 +325,7 @@ export default function PosPage() {
   const [stockBatches, setStockBatches] = useState<any[]>([]);
   const [isLoadingBatches, setIsLoadingBatches] = useState(false);
   const [showStockInForm, setShowStockInForm] = useState(false);
-  const [stockInForm, setStockInForm] = useState({ product_id: 0, qty: '', price_buy: '', batch_no: '', supplier: '' });
+  const [stockInForm, setStockInForm] = useState({ product_id: 0, qty: '', price_buy: '', batch_no: '', supplier: '', supplier_id: '' });
   const [showStockAdjustForm, setShowStockAdjustForm] = useState(false);
   const [stockAdjustForm, setStockAdjustForm] = useState({ product_id: 0, qty_adjusted: '', type: 'waste', reason: '' });
   const [stockMessage, setStockMessage] = useState('');
@@ -597,6 +609,96 @@ export default function PosPage() {
     } catch (error) { console.error(error); alert('Gagal.'); }
     finally { setIsSubmitting(false); }
   };
+  // ─── Supplier & Price History Statistics Hooks ───
+  const fetchSuppliers = useCallback(async (search: string = '') => {
+    try {
+      setIsLoadingSuppliers(true);
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      const res = await fetch('/api/suppliers?' + params.toString());
+      const r = await res.json();
+      if (r.success) {
+        setSupplierList(r.data);
+      }
+    } catch {
+      /* silent */
+    } finally {
+      setIsLoadingSuppliers(false);
+    }
+  }, []);
+
+  const fetchPriceHistory = useCallback(async (productId?: string, supplierId?: string) => {
+    try {
+      setIsLoadingPriceHistory(true);
+      const params = new URLSearchParams();
+      if (productId) params.set('product_id', productId);
+      if (supplierId) params.set('supplier_id', supplierId);
+      const res = await fetch('/api/suppliers/price-history?' + params.toString());
+      const r = await res.json();
+      if (r.success) {
+        setPriceHistoryList(r.data);
+      }
+    } catch {
+      /* silent */
+    } finally {
+      setIsLoadingPriceHistory(false);
+    }
+  }, []);
+
+  const handleSupplierFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supplierForm.name.trim()) { alert('Nama supplier wajib diisi!'); return; }
+    try {
+      setIsSubmitting(true);
+      const isEdit = supplierForm.id !== null;
+      const url = '/api/suppliers';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: supplierForm.id,
+          name: supplierForm.name.trim(),
+          phone: supplierForm.phone || null,
+          email: supplierForm.email || null,
+          address: supplierForm.address || null
+        }),
+      });
+      const r = await res.json();
+      if (r.success) {
+        alert(r.message);
+        setShowSupplierForm(false);
+        setSupplierForm({ id: null, name: '', phone: '', email: '', address: '' });
+        fetchSuppliers(supplierSearchQuery);
+      } else {
+        alert('Gagal: ' + r.error);
+      }
+    } catch {
+      alert('Gagal memproses supplier.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteSupplier = async (id: number) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus supplier ini? Semua riwayat stok masuk terkait tetap dipertahankan.')) return;
+    try {
+      setIsLoadingSuppliers(true);
+      const res = await fetch(`/api/suppliers?id=${id}`, { method: 'DELETE' });
+      const r = await res.json();
+      if (r.success) {
+        alert(r.message);
+        fetchSuppliers(supplierSearchQuery);
+      } else {
+        alert('Gagal: ' + r.error);
+      }
+    } catch {
+      alert('Gagal menghapus supplier.');
+    } finally {
+      setIsLoadingSuppliers(false);
+    }
+  };
+
   // ─── Stock Management ───
   const fetchStockProducts = useCallback(async () => {
     try { setIsLoadingStock(true); const res = await fetch('/api/products?all=true'); const result = await res.json(); if (result.success) setStockProducts(result.data.filter((p: any) => p.type === 'bahan_baku')); } catch { /* silent */ }
@@ -610,9 +712,9 @@ export default function PosPage() {
     if (!stockInForm.qty || parseInt(stockInForm.qty) < 1) { alert('Jumlah wajib diisi!'); return; }
     try {
       setIsSubmitting(true); setStockMessage('');
-      const res = await fetch('/api/stock/in', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: stockInForm.product_id, qty: parseInt(stockInForm.qty), price_buy: stockInForm.price_buy ? parseFloat(stockInForm.price_buy) : 0, batch_no: stockInForm.batch_no, supplier: stockInForm.supplier }) });
+      const res = await fetch('/api/stock/in', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ product_id: stockInForm.product_id, qty: parseInt(stockInForm.qty), price_buy: stockInForm.price_buy ? parseFloat(stockInForm.price_buy) : 0, batch_no: stockInForm.batch_no, supplier: stockInForm.supplier, supplier_id: (stockInForm.supplier_id && stockInForm.supplier_id !== 'manual') ? parseInt(stockInForm.supplier_id, 10) : undefined }) });
       const result = await res.json();
-      if (result.success) { setStockMessage('Stok berhasil ditambahkan!'); setShowStockInForm(false); setStockInForm({ product_id: 0, qty: '', price_buy: '', batch_no: '', supplier: '' }); await fetchStockProducts(); if (selectedStockProduct) await fetchStockBatches(selectedStockProduct.id); }
+      if (result.success) { setStockMessage('Stok berhasil ditambahkan!'); setShowStockInForm(false); setStockInForm({ product_id: 0, qty: '', price_buy: '', batch_no: '', supplier: '', supplier_id: '' }); await fetchStockProducts(); if (selectedStockProduct) await fetchStockBatches(selectedStockProduct.id); }
       else { alert('Gagal: ' + result.error); }
     } catch { alert('Gagal.'); }
     finally { setIsSubmitting(false); }
@@ -812,10 +914,25 @@ export default function PosPage() {
   // Fetch stock products when STOK tab is selected
   useEffect(() => {
     if (bizTab === 'STOK') {
-      const t = setTimeout(() => fetchStockProducts(), 0);
+      const t = setTimeout(() => {
+        fetchStockProducts();
+        fetchSuppliers();
+      }, 0);
       return () => clearTimeout(t);
     }
-  }, [bizTab, fetchStockProducts]);
+  }, [bizTab, fetchStockProducts, fetchSuppliers]);
+
+  // Fetch suppliers & price histories when SUPPLIER tab is selected
+  useEffect(() => {
+    if (bizTab === 'SUPPLIER') {
+      const t = setTimeout(() => {
+        fetchSuppliers(supplierSearchQuery);
+        fetchPriceHistory(priceHistoryProductFilter, priceHistorySupplierFilter);
+        fetchStockMaterials();
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [bizTab, supplierSearchQuery, priceHistoryProductFilter, priceHistorySupplierFilter, fetchSuppliers, fetchPriceHistory, fetchStockMaterials]);
   // Fetch recipes when RESEP tab is selected
   useEffect(() => {
     if (bizTab === 'RESEP') {
@@ -906,7 +1023,7 @@ export default function PosPage() {
             </div>
             <nav className="flex-1 p-3 space-y-1.5">
               {viewMode === 'BISNIS' ? (
-                <><SidebarItem icon="📈" label="Ringkasan" minimized={isSidebarMinimized} active={bizTab === 'RINGKASAN'} onClick={() => setBizTab('RINGKASAN')} /><SidebarItem icon="📦" label="Stok FIFO" minimized={isSidebarMinimized} active={bizTab === 'STOK'} onClick={() => setBizTab('STOK')} /><SidebarItem icon="📖" label="Resep & HPP" minimized={isSidebarMinimized} active={bizTab === 'RESEP'} onClick={() => setBizTab('RESEP')} /><SidebarItem icon="📋" label="Pesanan" minimized={isSidebarMinimized} active={bizTab === 'ORDERS'} onClick={() => setBizTab('ORDERS')} /><SidebarItem icon="🧾" label="Piutang" minimized={isSidebarMinimized} active={bizTab === 'PIUTANG'} onClick={() => setBizTab('PIUTANG')} /><SidebarItem icon="📜" label="Riwayat" minimized={isSidebarMinimized} active={bizTab === 'RIWAYAT'} onClick={() => setBizTab('RIWAYAT')} /><SidebarItem icon="💸" label="Pengeluaran" minimized={isSidebarMinimized} active={bizTab === 'PENGELUARAN'} onClick={() => setBizTab('PENGELUARAN')} /><SidebarItem icon="👥" label="Konsumen" minimized={isSidebarMinimized} active={bizTab === 'KONSUMEN'} onClick={() => setBizTab('KONSUMEN')} /><SidebarItem icon="⚙️" label="Pengaturan" minimized={isSidebarMinimized} active={bizTab === 'PENGATURAN'} onClick={() => setBizTab('PENGATURAN')} /></>
+                <><SidebarItem icon="📈" label="Ringkasan" minimized={isSidebarMinimized} active={bizTab === 'RINGKASAN'} onClick={() => setBizTab('RINGKASAN')} /><SidebarItem icon="📦" label="Stok FIFO" minimized={isSidebarMinimized} active={bizTab === 'STOK'} onClick={() => setBizTab('STOK')} /><SidebarItem icon="📖" label="Resep & HPP" minimized={isSidebarMinimized} active={bizTab === 'RESEP'} onClick={() => setBizTab('RESEP')} /><SidebarItem icon="📋" label="Pesanan" minimized={isSidebarMinimized} active={bizTab === 'ORDERS'} onClick={() => setBizTab('ORDERS')} /><SidebarItem icon="🧾" label="Piutang" minimized={isSidebarMinimized} active={bizTab === 'PIUTANG'} onClick={() => setBizTab('PIUTANG')} /><SidebarItem icon="📜" label="Riwayat" minimized={isSidebarMinimized} active={bizTab === 'RIWAYAT'} onClick={() => setBizTab('RIWAYAT')} /><SidebarItem icon="💸" label="Pengeluaran" minimized={isSidebarMinimized} active={bizTab === 'PENGELUARAN'} onClick={() => setBizTab('PENGELUARAN')} /><SidebarItem icon="👥" label="Konsumen" minimized={isSidebarMinimized} active={bizTab === 'KONSUMEN'} onClick={() => setBizTab('KONSUMEN')} /><SidebarItem icon="🚚" label="Supplier" minimized={isSidebarMinimized} active={bizTab === 'SUPPLIER'} onClick={() => setBizTab('SUPPLIER')} /><SidebarItem icon="⚙️" label="Pengaturan" minimized={isSidebarMinimized} active={bizTab === 'PENGATURAN'} onClick={() => setBizTab('PENGATURAN')} /></>
               ) : (
                 <>
                   <SidebarItem icon="🛒" label="POS" minimized={isSidebarMinimized} active={operatorTab === 'POS'} onClick={() => setOperatorTab('POS')} />
@@ -1272,7 +1389,38 @@ export default function PosPage() {
                               <input type="text" placeholder="Batch No" value={stockInForm.batch_no} onChange={e => setStockInForm(f => ({ ...f, batch_no: e.target.value }))} className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none" />
                               <input type="number" placeholder="Jumlah" value={stockInForm.qty} onChange={e => setStockInForm(f => ({ ...f, qty: e.target.value }))} className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none" />
                               <input type="text" placeholder="Harga Beli" value={stockInForm.price_buy} onChange={e => setStockInForm(f => ({ ...f, price_buy: e.target.value }))} className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none" />
-                              <input type="text" placeholder="Supplier" value={stockInForm.supplier} onChange={e => setStockInForm(f => ({ ...f, supplier: e.target.value }))} className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none" />
+                              <select 
+                                value={stockInForm.supplier_id || ''} 
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  if (val === 'manual') {
+                                    setStockInForm(f => ({ ...f, supplier_id: 'manual', supplier: '' }));
+                                  } else {
+                                    const selected = supplierList.find(s => s.id === parseInt(val, 10));
+                                    setStockInForm(f => ({ 
+                                      ...f, 
+                                      supplier_id: val, 
+                                      supplier: selected ? selected.name : '' 
+                                    }));
+                                  }
+                                }} 
+                                className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none"
+                              >
+                                <option value="">-- Pilih Supplier --</option>
+                                {supplierList.map((s: any) => (
+                                  <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                                <option value="manual">-- Ketik Manual / Tambah Baru --</option>
+                              </select>
+                              {stockInForm.supplier_id === 'manual' && (
+                                <input 
+                                  type="text" 
+                                  placeholder="Nama Supplier Baru" 
+                                  value={stockInForm.supplier} 
+                                  onChange={e => setStockInForm(f => ({ ...f, supplier: e.target.value }))} 
+                                  className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none" 
+                                />
+                              )}
                               <div className="flex gap-2"><button onClick={() => setShowStockInForm(false)} className="flex-1 py-2 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 text-stone-500">Batal</button><button onClick={handleStockIn} disabled={isSubmitting} className="flex-1 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white">{isSubmitting ? '...' : 'Simpan'}</button></div>
                             </div>
                           )}
@@ -1672,6 +1820,409 @@ export default function PosPage() {
                         </div>
                       ))}
                     </div>}
+                </div>
+              )}
+              {bizTab === 'SUPPLIER' && (
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100 font-sans">Manajemen Supplier & Histori Harga</h2>
+                      <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">Kelola data vendor pemasok dan pantau statistik tren harga beli bahan baku.</p>
+                    </div>
+                    <button 
+                      onClick={() => { 
+                        setSupplierForm({ id: null, name: '', phone: '', email: '', address: '' }); 
+                        setShowSupplierForm(true); 
+                      }} 
+                      className="text-xs px-4 py-2 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                    >
+                      + Tambah Supplier
+                    </button>
+                  </div>
+
+                  {/* Supplier Form Modal */}
+                  {showSupplierForm && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-stone-900/50 dark:bg-stone-950/80 animate-fade-in">
+                      <div className="w-full max-w-md rounded-3xl border shadow-2xl bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">{supplierForm.id ? 'Edit' : 'Tambah'} Supplier</h3>
+                          <button onClick={() => setShowSupplierForm(false)} className="w-7 h-7 rounded-full bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-500 dark:text-stone-400 flex items-center justify-center text-xs">✕</button>
+                        </div>
+                        <form onSubmit={handleSupplierFormSubmit} className="space-y-4">
+                          <div>
+                            <label className="text-[9px] font-medium text-stone-400 block mb-1">Nama Supplier *</label>
+                            <input 
+                              type="text" 
+                              required 
+                              value={supplierForm.name} 
+                              onChange={e => setSupplierForm(f => ({ ...f, name: e.target.value }))} 
+                              className="w-full rounded-xl px-4 py-2.5 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600/40" 
+                              placeholder="Nama PT / CV / Toko"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-medium text-stone-400 block mb-1">Nomor Telepon</label>
+                            <input 
+                              type="text" 
+                              value={supplierForm.phone} 
+                              onChange={e => setSupplierForm(f => ({ ...f, phone: e.target.value }))} 
+                              className="w-full rounded-xl px-4 py-2.5 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600/40" 
+                              placeholder="Contoh: 08123456789"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-medium text-stone-400 block mb-1">Email</label>
+                            <input 
+                              type="email" 
+                              value={supplierForm.email} 
+                              onChange={e => setSupplierForm(f => ({ ...f, email: e.target.value }))} 
+                              className="w-full rounded-xl px-4 py-2.5 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600/40" 
+                              placeholder="email@supplier.com"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-medium text-stone-400 block mb-1">Alamat Lengkap</label>
+                            <textarea 
+                              value={supplierForm.address} 
+                              onChange={e => setSupplierForm(f => ({ ...f, address: e.target.value }))} 
+                              rows={3} 
+                              className="w-full rounded-xl px-4 py-2.5 text-xs resize-none bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600/40" 
+                              placeholder="Alamat kantor / gudang supplier"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setShowSupplierForm(false)} className="flex-1 py-3 rounded-xl text-xs font-bold border border-stone-200 dark:border-stone-700 text-stone-500">Batal</button>
+                            <button type="submit" disabled={isSubmitting} className="flex-1 py-3 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50">{isSubmitting ? '...' : 'Simpan'}</button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Main Grid: Left Column Suppliers list, Right Column Price History Stats & Chart */}
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    {/* Left Column: Suppliers */}
+                    <div className="xl:col-span-1 space-y-3">
+                      <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 space-y-3 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Daftar Supplier</span>
+                          <button 
+                            onClick={() => fetchSuppliers(supplierSearchQuery)} 
+                            disabled={isLoadingSuppliers} 
+                            className="text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                          >
+                            {isLoadingSuppliers ? '...' : 'Refresh'}
+                          </button>
+                        </div>
+                        <input 
+                          type="text" 
+                          placeholder="Cari nama / telepon / email..." 
+                          value={supplierSearchQuery} 
+                          onChange={e => {
+                            setSupplierSearchQuery(e.target.value);
+                            fetchSuppliers(e.target.value);
+                          }} 
+                          className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-600/10"
+                        />
+                        <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                          {isLoadingSuppliers ? (
+                            <div className="text-center text-xs text-stone-400 py-6 animate-pulse">Memuat supplier...</div>
+                          ) : supplierList.length === 0 ? (
+                            <div className="text-center text-xs text-stone-400 py-6 border border-dashed border-stone-200 dark:border-stone-800 rounded-xl">Belum ada data supplier.</div>
+                          ) : (
+                            supplierList.map((sup: any) => (
+                              <div 
+                                key={sup.id} 
+                                className="p-3 rounded-xl border border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-800/20 hover:border-stone-200 dark:hover:border-stone-700 transition space-y-2 animate-fade-in"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div>
+                                    <h4 className="text-xs font-bold text-stone-900 dark:text-stone-100">{sup.name}</h4>
+                                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold inline-block mt-0.5">
+                                      {sup._count?.stock_ins || 0} Pembelian Stok
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button 
+                                      onClick={() => {
+                                        setSupplierForm({ id: sup.id, name: sup.name, phone: sup.phone || '', email: sup.email || '', address: sup.address || '' });
+                                        setShowSupplierForm(true);
+                                      }} 
+                                      className="text-[9px] px-2 py-1 rounded bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 hover:text-stone-700"
+                                    >
+                                      Edit
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDeleteSupplier(sup.id)} 
+                                      className="text-[9px] px-2 py-1 rounded text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                    >
+                                      Hapus
+                                    </button>
+                                  </div>
+                                </div>
+                                {(sup.phone || sup.email || sup.address) && (
+                                  <div className="text-[10px] text-stone-500 dark:text-stone-400 space-y-0.5 border-t border-stone-100 dark:border-stone-800/50 pt-1.5">
+                                    {sup.phone && <p>📞 {sup.phone}</p>}
+                                    {sup.email && <p>✉️ {sup.email}</p>}
+                                    {sup.address && <p className="line-clamp-2">📍 {sup.address}</p>}
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Statistics & SVG Chart */}
+                    <div className="xl:col-span-2 space-y-4">
+                      {/* Filter Bar */}
+                      <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 shadow-sm space-y-3">
+                        <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">Filter Harga Beli</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[9px] font-medium text-stone-400 block mb-1">Bahan Baku / Produk</label>
+                            <select 
+                              value={priceHistoryProductFilter} 
+                              onChange={e => setPriceHistoryProductFilter(e.target.value)} 
+                              className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none"
+                            >
+                              <option value="">Semua Bahan Baku</option>
+                              {stockMaterials.map((p: any) => (
+                                <option key={p.id} value={p.id}>{p.sku} - {p.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-medium text-stone-400 block mb-1">Supplier</label>
+                            <select 
+                              value={priceHistorySupplierFilter} 
+                              onChange={e => setPriceHistorySupplierFilter(e.target.value)} 
+                              className="w-full rounded-xl px-3 py-2 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none"
+                            >
+                              <option value="">Semua Supplier</option>
+                              {supplierList.map((s: any) => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* SVG Trend Line Chart */}
+                      <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-4 shadow-sm space-y-4">
+                        <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">Tren Harga Pembelian</span>
+                        
+                        {(() => {
+                          const plotData = [...priceHistoryList].reverse(); // oldest first
+                          if (isLoadingPriceHistory) {
+                            return <div className="h-48 flex items-center justify-center text-xs text-stone-400 animate-pulse">Memuat diagram tren harga...</div>;
+                          }
+                          if (plotData.length < 2) {
+                            return (
+                              <div className="h-48 flex flex-col items-center justify-center text-center border border-dashed border-stone-200 dark:border-stone-800 rounded-xl p-6 text-stone-400">
+                                <span className="text-xl mb-1">📈</span>
+                                <p className="text-[11px]">Masukkan minimal 2 transaksi pembelian untuk bahan/produk dan supplier yang dipilih untuk memplot tren grafik.</p>
+                              </div>
+                            );
+                          }
+
+                          // Compute coordinates
+                          const width = 600;
+                          const height = 180;
+                          const paddingX = 40;
+                          const paddingY = 25;
+                          
+                          const prices = plotData.map(d => d.price_buy);
+                          const minPrice = Math.min(...prices);
+                          const maxPrice = Math.max(...prices);
+                          const priceDiff = maxPrice - minPrice;
+                          const priceRange = priceDiff === 0 ? minPrice * 0.2 || 1000 : priceDiff;
+                          
+                          const chartMin = priceDiff === 0 ? minPrice - priceRange : minPrice - (priceRange * 0.1);
+                          const chartMax = priceDiff === 0 ? minPrice + priceRange : maxPrice + (priceRange * 0.1);
+                          
+                          const points = plotData.map((d, i) => {
+                            const x = paddingX + (i / (plotData.length - 1)) * (width - paddingX * 2);
+                            const y = height - paddingY - ((d.price_buy - chartMin) / (chartMax - chartMin)) * (height - paddingY * 2);
+                            return { x, y, data: d };
+                          });
+
+                          const pathD = points.reduce((acc, p, idx) => {
+                            return acc + `${idx === 0 ? 'M' : 'L'} ${p.x} ${p.y}`;
+                          }, '');
+
+                          const areaD = pathD + ` L ${points[points.length - 1].x} ${height - paddingY} L ${points[0].x} ${height - paddingY} Z`;
+
+                          return (
+                            <div className="space-y-2">
+                              <div className="w-full overflow-x-auto select-none">
+                                <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-[500px] h-auto overflow-visible">
+                                  <defs>
+                                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                                    </linearGradient>
+                                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                      <feGaussianBlur stdDeviation="3" result="blur" />
+                                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                    </filter>
+                                  </defs>
+
+                                  {/* Gridlines horizontal */}
+                                  {[0, 0.5, 1].map((ratio, i) => {
+                                    const y = paddingY + ratio * (height - paddingY * 2);
+                                    const priceLabel = chartMax - ratio * (chartMax - chartMin);
+                                    return (
+                                      <g key={i}>
+                                        <line 
+                                          x1={paddingX} 
+                                          y1={y} 
+                                          x2={width - paddingX} 
+                                          y2={y} 
+                                          className="stroke-stone-100 dark:stroke-stone-800/60" 
+                                          strokeDasharray="4 4"
+                                        />
+                                        <text 
+                                          x={paddingX - 6} 
+                                          y={y + 3} 
+                                          textAnchor="end" 
+                                          className="fill-stone-400 text-[8px] font-mono"
+                                        >
+                                          {formatShortRupiah(priceLabel)}
+                                        </text>
+                                      </g>
+                                    );
+                                  })}
+
+                                  {/* X Axis Dates */}
+                                  {points.map((p, idx) => {
+                                    if (idx === 0 || idx === points.length - 1 || (points.length > 5 && idx === Math.floor(points.length / 2))) {
+                                      const d = new Date(p.data.change_date);
+                                      const dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                                      return (
+                                        <text 
+                                          key={idx}
+                                          x={p.x} 
+                                          y={height - 6} 
+                                          textAnchor="middle" 
+                                          className="fill-stone-400 text-[8px] font-semibold"
+                                        >
+                                          {dateStr}
+                                        </text>
+                                      );
+                                    }
+                                    return null;
+                                  })}
+
+                                  {/* Area chart */}
+                                  <path d={areaD} fill="url(#chartGradient)" />
+
+                                  {/* Line path */}
+                                  <path 
+                                    d={pathD} 
+                                    fill="none" 
+                                    className="stroke-emerald-500 dark:stroke-emerald-400" 
+                                    strokeWidth="2.5" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                    filter="url(#glow)"
+                                  />
+
+                                  {/* Dots */}
+                                  {points.map((p, idx) => (
+                                    <g key={idx} className="group cursor-pointer">
+                                      <circle 
+                                        cx={p.x} 
+                                        cy={p.y} 
+                                        r="4" 
+                                        className="fill-white dark:fill-stone-900 stroke-emerald-500 dark:stroke-emerald-400" 
+                                        strokeWidth="2"
+                                      />
+                                      <text 
+                                        x={p.x} 
+                                        y={p.y - 8} 
+                                        textAnchor="middle" 
+                                        className="fill-stone-800 dark:fill-stone-200 text-[8px] font-mono font-bold"
+                                      >
+                                        {formatShortRupiah(p.data.price_buy)}
+                                      </text>
+                                    </g>
+                                  ))}
+                                </svg>
+                              </div>
+                              <p className="text-[9px] text-center text-stone-400">Diagram sumbu X mewakili urutan log transaksi stok masuk</p>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Log Table */}
+                      <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl overflow-hidden shadow-sm">
+                        <div className="p-4 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-800/30 flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider">Log Perubahan Harga Beli</span>
+                          <span className="text-[10px] font-mono text-stone-400">{priceHistoryList.length} Transaksi</span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-800/50">
+                                <th className="text-left px-4 py-3 font-bold text-[9px] uppercase tracking-wider text-stone-400 dark:text-stone-500">Tanggal</th>
+                                <th className="text-left px-4 py-3 font-bold text-[9px] uppercase tracking-wider text-stone-400 dark:text-stone-500">Bahan/Produk</th>
+                                <th className="text-left px-4 py-3 font-bold text-[9px] uppercase tracking-wider text-stone-400 dark:text-stone-500">Supplier</th>
+                                <th className="text-right px-4 py-3 font-bold text-[9px] uppercase tracking-wider text-stone-400 dark:text-stone-500">Harga Beli</th>
+                                <th className="text-center px-4 py-3 font-bold text-[9px] uppercase tracking-wider text-stone-400 dark:text-stone-500">Delta %</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {isLoadingPriceHistory ? (
+                                <tr>
+                                  <td colSpan={5} className="text-center py-8 text-stone-400 animate-pulse">Memuat riwayat...</td>
+                                </tr>
+                              ) : priceHistoryList.length === 0 ? (
+                                <tr>
+                                  <td colSpan={5} className="text-center py-8 text-stone-400">Tidak ada riwayat harga yang cocok.</td>
+                                </tr>
+                              ) : (
+                                priceHistoryList.map((hist: any) => {
+                                  const delta = hist.delta_percent;
+                                  let badgeClass = "text-stone-500 bg-stone-100 dark:bg-stone-800/80 dark:text-stone-400";
+                                  let badgeText = "0%";
+                                  if (delta > 0) {
+                                    badgeClass = "text-rose-600 bg-rose-50 dark:bg-rose-950/30 dark:text-rose-400 font-bold";
+                                    badgeText = `▲ ${delta.toFixed(1)}%`;
+                                  } else if (delta < 0) {
+                                    badgeClass = "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400 font-bold";
+                                    badgeText = `▼ ${Math.abs(delta).toFixed(1)}%`;
+                                  }
+
+                                  return (
+                                    <tr key={hist.id} className="border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition">
+                                      <td className="px-4 py-3 font-mono text-stone-600 dark:text-stone-400 whitespace-nowrap">
+                                        {new Date(hist.change_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                      </td>
+                                      <td className="px-4 py-3 font-semibold text-stone-800 dark:text-stone-200">
+                                        {hist.product_name}
+                                        <span className="block text-[8px] font-mono font-normal text-stone-400">SKU: {hist.product_sku} ({hist.product_unit})</span>
+                                      </td>
+                                      <td className="px-4 py-3 text-stone-600 dark:text-stone-300 font-medium">{hist.supplier_name}</td>
+                                      <td className="px-4 py-3 text-right font-mono font-bold text-stone-900 dark:text-stone-100">{formatRupiah(Number(hist.price_buy))}</td>
+                                      <td className="px-4 py-3 text-center whitespace-nowrap">
+                                        <span className={`inline-block text-[9px] px-2 py-0.5 rounded-full ${badgeClass}`}>
+                                          {badgeText}
+                                        </span>
+                                      </td>
+                                    </tr>
+                                  );
+                                })
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               {(bizTab === 'ORDERS' || bizTab === 'PIUTANG' || bizTab === 'RIWAYAT') && (
