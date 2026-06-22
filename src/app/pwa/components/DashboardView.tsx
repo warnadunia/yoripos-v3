@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-// Terima props onOpenPos dari page.tsx
 export default function DashboardView({ onOpenPos }: { onOpenPos: () => void }) {
-    const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(true);
+    const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
+    const [selectedMonth, setSelectedMonth] = useState('JUN');
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const quickMenus = [
         { name: 'POS / Kasir', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
@@ -19,236 +20,287 @@ export default function DashboardView({ onOpenPos }: { onOpenPos: () => void }) 
         { name: 'More', icon: 'M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z' },
     ];
 
+    // Data Cashflow 12 Bulan Full
+    const chartData = [
+        { month: 'JAN', in: 50, piutang: 15, out: 30, valIn: '1.000.000', invIn: 40, valPiu: '300.000', invPiu: 10, valOut: '600.000', invOut: 15 },
+        { month: 'FEB', in: 60, piutang: 0, out: 30, valIn: '1.200.000', invIn: 45, valPiu: '0', invPiu: 0, valOut: '500.000', invOut: 12 },
+        { month: 'MAR', in: 65, piutang: 30, out: 40, valIn: '2.500.000', invIn: 60, valPiu: '800.000', invPiu: 15, valOut: '1.200.000', invOut: 20 },
+        { month: 'APR', in: 55, piutang: 25, out: 50, valIn: '1.800.000', invIn: 50, valPiu: '500.000', invPiu: 10, valOut: '1.500.000', invOut: 25 },
+        { month: 'MEI', in: 60, piutang: 30, out: 45, valIn: '2.100.000', invIn: 55, valPiu: '750.000', invPiu: 12, valOut: '1.300.000', invOut: 18 },
+        { month: 'JUN', in: 85, piutang: 40, out: 65, valIn: '12.345.678', invIn: 123, valPiu: '12.345.678', invPiu: 123, valOut: '2.345.678', invOut: 75 },
+        { month: 'JUL', in: 70, piutang: 20, out: 40, valIn: '8.000.000', invIn: 80, valPiu: '1.500.000', invPiu: 15, valOut: '3.000.000', invOut: 30 },
+        { month: 'AGS', in: 90, piutang: 35, out: 70, valIn: '15.000.000', invIn: 150, valPiu: '3.500.000', invPiu: 30, valOut: '5.000.000', invOut: 50 },
+        { month: 'SEP', in: 45, piutang: 10, out: 30, valIn: '5.000.000', invIn: 50, valPiu: '500.000', invPiu: 5, valOut: '2.000.000', invOut: 20 },
+        { month: 'OKT', in: 75, piutang: 25, out: 55, valIn: '10.000.000', invIn: 100, valPiu: '2.000.000', invPiu: 20, valOut: '4.000.000', invOut: 40 },
+        { month: 'NOV', in: 65, piutang: 15, out: 45, valIn: '7.500.000', invIn: 75, valPiu: '1.000.000', invPiu: 10, valOut: '3.500.000', invOut: 35 },
+        { month: 'DES', in: 95, piutang: 50, out: 80, valIn: '18.000.000', invIn: 180, valPiu: '5.000.000', invPiu: 50, valOut: '8.000.000', invOut: 80 },
+    ];
+
+    const activeChart = chartData.find(d => d.month === selectedMonth) || chartData[5];
+
+    // Biar pas pertama buka, grafiknya langsung scroll ke bulan Juni (tengah)
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollLeft = 200;
+        }
+    }, []);
+
     const topConsumers = [
-        { name: 'Agam Warmindo', orders: 20, total: '5.234.234' },
-        { name: 'SS Telur', orders: 20, total: '230.234' },
+        { name: 'Agam Warmindo', orders: 23, total: '5.234.234' },
+        { name: 'SS Telur', orders: 30, total: '230.234' },
         { name: 'Bakpia 3 Generasi', orders: 8, total: '123.098' },
         { name: 'Lisa Untari', orders: 5, total: '34.098' },
         { name: 'Madang', orders: 3, total: '12.098' },
     ];
 
     const topMenus = [
-        { name: 'Menu 1', orders: 20, total: '5.234.234' },
-        { name: 'Menu 2', orders: 20, total: '230.234' },
+        { name: 'Menu 1', orders: 23, total: '5.234.234' },
+        { name: 'Menu 2', orders: 30, total: '230.234' },
         { name: 'Menu 3', orders: 8, total: '123.098' },
-        { name: 'Menu 4', orders: 5, total: '34.098' },
+        { name: 'Menu 4', orders: 9, total: '34.098' },
         { name: 'Menu 5', orders: 3, total: '12.098' },
     ];
 
     return (
-        <div className="w-full pb-24 relative">
+        // Background Hijau Mint sangat muda
+        <div className="w-full min-h-screen bg-[#E8F8F5] pb-24 relative font-sans text-gray-800">
+            <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }` }} />
 
             {/* ========================================= */}
-            {/* 1. BLOK HIJAU BESAR                       */}
+            {/* WRAPPER PUTIH UNTUK HEADER & RINGKASAN    */}
             {/* ========================================= */}
-            <div className="w-full bg-emerald-500 rounded-b-3xl pb-8">
+            <div className="bg-white rounded-b-[2rem] shadow-sm pb-6">
 
-                {/* NAVBAR ATAS */}
-                <div className="flex justify-between items-center p-4 text-white">
-                    <button className="hover:opacity-80">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                    </button>
-                    <h1 className="text-lg font-bold tracking-wide">Dashboard</h1>
-                    <button className="hover:opacity-80">
-                        <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </button>
-                </div>
-
-                {/* INFO TOKO & USER & TOMBOL ORDER BARU */}
-                <div className="px-4 pb-4 pt-2 text-white flex justify-between items-start">
-                    <div>
-                        <h2 className="text-xl font-bold">Toko Tuan dan Nyonya</h2>
-                        <div className="flex items-center mt-1.5 text-xs text-emerald-100">
-                            <span>Username login sebagai</span>
-                            <span className="ml-2 bg-gray-900 bg-opacity-40 px-3 py-0.5 rounded-full text-xs font-bold text-white tracking-wide">
-                                Admin
-                            </span>
-                        </div>
+                {/* 1. BLOK HIJAU BESAR (HEADER) */}
+                <div className="w-full bg-[#10B981] rounded-b-[2rem] pb-6 pt-2">
+                    {/* NAVBAR ATAS */}
+                    <div className="flex justify-between items-center px-5 py-3 text-white">
+                        <button className="hover:opacity-80">
+                            <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        </button>
+                        <h1 className="text-base font-bold tracking-wide">Dashboard</h1>
+                        <div className="w-7"></div> {/* Spacer */}
                     </div>
-                    {/* Tombol Order Baru - MENGGUNAKAN PROPS onOpenPos */}
-                    <button
-                        onClick={onOpenPos}
-                        className="bg-[#FFD166] hover:bg-[#ffc63b] text-amber-900 text-xs font-bold py-2.5 px-4 rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 transition-all"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                        Order Baru
-                    </button>
+
+                    {/* INFO TOKO & USER & TOMBOL ORDER BARU */}
+                    <div className="px-5 pb-2 pt-2 text-white flex justify-between items-center">
+                        <div>
+                            <h2 className="text-lg font-bold">Toko Tuan dan Nyonya</h2>
+                            <div className="flex items-center mt-1 text-[11px] text-emerald-100">
+                                <span>Username</span>
+                                <span className="ml-1.5 bg-[#FFC107] px-2 py-0.5 rounded text-[10px] font-bold text-amber-900 tracking-wide">
+                                    Admin
+                                </span>
+                            </div>
+                        </div>
+                        {/* Tombol Order Baru */}
+                        <button
+                            onClick={onOpenPos}
+                            className="bg-[#FFC107] hover:bg-amber-400 text-amber-900 text-xs font-bold py-2 px-3 rounded-xl shadow-sm flex items-center gap-1 active:scale-95 transition-all"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                            Order<br />Baru
+                        </button>
+                    </div>
                 </div>
 
-                {/* CARD PUTIH: RINGKASAN HARI INI */}
-                <div className="mx-4 bg-white rounded-3xl p-4 shadow-sm relative z-10">
-                    <div className="flex justify-between items-center mb-4">
+                {/* 2. BAGIAN RINGKASAN HARI INI */}
+                <div className="px-4 mt-4">
+                    <div className="flex justify-between items-center mb-3 px-1">
                         <span className="text-sm font-bold text-gray-800">Ringkasan Hari Ini</span>
-                        <span className="text-xs text-gray-500 font-medium">21 Juni 2026</span>
+                        <span className="text-xs text-gray-600 font-semibold">21 Juni 2026</span>
                     </div>
 
-                    <div className="flex gap-2 w-full">
-                        {/* Box Pendapatan */}
-                        <div className="flex-1 bg-teal-100 bg-opacity-60 rounded-xl p-3 flex flex-col justify-between">
-                            <div>
-                                <div className="w-6 h-6 mb-2 text-teal-600 bg-teal-200 bg-opacity-50 p-1 rounded-md"><svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-                                <p className="text-xs font-medium text-gray-800 mb-0.5">Pendapatan</p>
-                                <p className="text-xs text-gray-500 scale-90 origin-left">Rp</p>
-                                <p className="text-sm font-black text-gray-900 leading-none mt-0.5">12.345.678</p>
-                                <p className="text-xs text-gray-500 mt-1.5 scale-90 origin-left">123 Invoices</p>
+                    {/* Kartu Pendapatan Besar */}
+                    <div className="bg-[#C6F0E0] border border-[#A3E4D7] rounded-2xl p-4 flex justify-between items-center mb-3 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-emerald-400/30 text-emerald-700 rounded-lg flex items-center justify-center">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             </div>
-                            <p className="text-xs italic text-gray-400 mt-4 leading-tight scale-75 origin-bottom-left">* Total Pendapatan dari transaksi LUNAS</p>
+                            <div>
+                                <p className="text-[13px] font-bold text-emerald-900">Pendapatan</p>
+                                <p className="text-[9px] text-emerald-600">123 Invoices</p>
+                            </div>
                         </div>
-                        {/* Box Piutang */}
-                        <div className="flex-1 bg-amber-100 bg-opacity-60 rounded-xl p-3 flex flex-col justify-between">
-                            <div>
-                                <div className="w-6 h-6 mb-2 text-amber-600 bg-amber-200 bg-opacity-50 p-1 rounded-md"><svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg></div>
-                                <p className="text-xs font-medium text-gray-800 mb-0.5">Piutang</p>
-                                <p className="text-xs text-gray-500 scale-90 origin-left">Rp</p>
-                                <p className="text-sm font-black text-gray-900 leading-none mt-0.5">12.345.678</p>
-                                <p className="text-xs text-gray-500 mt-1.5 scale-90 origin-left">123 Invoices</p>
+                        <p className="text-xl font-black text-gray-800 font-mono tracking-tight">Rp 2.345.678</p>
+                    </div>
+
+                    {/* Kartu Piutang & Pengeluaran */}
+                    <div className="flex gap-3 mb-3">
+                        <div className="flex-1 bg-[#FFF0C7] border border-[#FDEBD0] rounded-2xl p-3 flex flex-col justify-between shadow-sm">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-7 h-7 bg-amber-400/20 text-amber-600 rounded-lg flex items-center justify-center">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                </div>
+                                <div>
+                                    <p className="text-[11px] font-bold text-amber-900">Piutang</p>
+                                    <p className="text-[8px] text-amber-600">123 Invoices</p>
+                                </div>
                             </div>
-                            <p className="text-xs italic text-gray-400 mt-4 leading-tight scale-75 origin-bottom-left">* Total Pesanan Terkirim dan belum terbayar</p>
+                            <p className="text-[13px] font-black text-gray-800 font-mono">Rp 12.345.678</p>
                         </div>
-                        {/* Box Pengeluaran */}
-                        <div className="flex-1 bg-rose-100 bg-opacity-60 rounded-xl p-3 flex flex-col justify-between">
-                            <div>
-                                <div className="w-6 h-6 mb-2 text-rose-500 bg-rose-200 bg-opacity-50 p-1 rounded-md"><svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg></div>
-                                <p className="text-xs font-medium text-gray-800 mb-0.5">Pengeluaran</p>
-                                <p className="text-xs text-gray-500 scale-90 origin-left">Rp</p>
-                                <p className="text-sm font-black text-gray-900 leading-none mt-0.5">12.345.678</p>
-                                <p className="text-xs text-gray-500 mt-1.5 scale-90 origin-left">123 Invoices</p>
+
+                        <div className="flex-1 bg-[#FADBD8] border border-[#F5B7B1] rounded-2xl p-3 flex flex-col justify-between shadow-sm">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-7 h-7 bg-rose-400/20 text-rose-600 rounded-lg flex items-center justify-center">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /></svg>
+                                </div>
+                                <div>
+                                    <p className="text-[11px] font-bold text-rose-900">Pengeluaran</p>
+                                    <p className="text-[8px] text-rose-600">75 Invoices</p>
+                                </div>
                             </div>
-                            <p className="text-xs italic text-gray-400 mt-4 leading-tight scale-75 origin-bottom-left">* Total Pengeluaran dan biaya Stock</p>
+                            <p className="text-[13px] font-black text-gray-800 font-mono">Rp 2.345.678</p>
                         </div>
                     </div>
 
-                    {/* 2 Kotak Abu-abu Rekap Bawah */}
-                    <div className="flex gap-2 w-full mt-3">
-                        <div className="flex-1 bg-gray-100 rounded-xl p-3">
-                            <p className="text-xs font-bold text-gray-800 mb-2 scale-90 origin-left">Rekap Pemasukan</p>
-                            <div className="flex justify-between text-xs text-gray-600 mb-1 scale-90 origin-left w-full"><span className="w-12">Cash</span><span className="font-mono text-gray-800">Rp 1.234.567</span></div>
-                            <div className="flex justify-between text-xs text-gray-600 mb-1 scale-90 origin-left w-full"><span className="w-12">Qris</span><span className="font-mono text-gray-800">Rp 456.789</span></div>
-                            <div className="flex justify-between text-xs text-gray-600 scale-90 origin-left w-full"><span className="w-12">Transfer</span><span className="font-mono text-gray-800">Rp 12.345.678</span></div>
+                    {/* Kotak Rekap (Abu-abu) */}
+                    <div className="flex gap-3">
+                        <div className="flex-1 bg-[#F2F4F4] border border-[#E5E7E9] rounded-2xl p-3 shadow-sm">
+                            <p className="text-[11px] font-bold text-gray-800 mb-2">Rekap Pemasukan</p>
+                            <div className="flex justify-between text-[9px] text-gray-600 mb-1"><span className="w-12">Cash</span><span className="font-mono text-gray-800">Rp 1.234.567</span></div>
+                            <div className="flex justify-between text-[9px] text-gray-600 mb-1"><span className="w-12">Qris</span><span className="font-mono text-gray-800">Rp 456.789</span></div>
+                            <div className="flex justify-between text-[9px] text-gray-600"><span className="w-12">Transfer</span><span className="font-mono text-gray-800">Rp 12.345.678</span></div>
                         </div>
-                        <div className="flex-1 bg-gray-100 rounded-xl p-3">
-                            <p className="text-xs font-bold text-gray-800 mb-2 scale-90 origin-left">Rekap Pengeluaran</p>
-                            <div className="flex justify-between text-xs text-gray-600 mb-1 scale-90 origin-left w-full"><span className="w-14">Expenses</span><span className="font-mono text-gray-800">Rp 123.456</span></div>
-                            <div className="flex justify-between text-xs text-gray-600 scale-90 origin-left w-full"><span className="w-14">Restock</span><span className="font-mono text-gray-800">Rp 345.678</span></div>
+                        <div className="flex-1 bg-[#F2F4F4] border border-[#E5E7E9] rounded-2xl p-3 shadow-sm">
+                            <p className="text-[11px] font-bold text-gray-800 mb-2">Rekap Pengeluaran</p>
+                            <div className="flex justify-between text-[9px] text-gray-600 mb-1"><span className="w-12">Expenses</span><span className="font-mono text-gray-800">Rp 123.456</span></div>
+                            <div className="flex justify-between text-[9px] text-gray-600"><span className="w-12">Restock</span><span className="font-mono text-gray-800">Rp 345.678</span></div>
                         </div>
                     </div>
                 </div>
 
-                {/* QUICK MENU HIDE & SEEK (COLLAPSIBLE) */}
-                <div className="mx-4 mt-6 bg-[#FFD166] rounded-3xl shadow-sm overflow-hidden transition-all duration-300 border border-amber-300/50">
+                {/* 3. QUICK MENU (KOTAK KUNING) */}
+                <div className="mx-4 mt-5 bg-[#FCD269] rounded-3xl p-5 shadow-sm overflow-hidden transition-all duration-300">
                     <button
                         onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
-                        className="w-full flex justify-between items-center p-4 px-5 text-amber-900 active:bg-amber-300/50 transition-colors"
+                        className="w-full flex justify-between items-center mb-1 text-emerald-800 active:opacity-70 transition-colors"
                     >
                         <span className="text-sm font-bold">Quick Menu</span>
                         <svg className={`w-5 h-5 transition-transform duration-300 ${isQuickMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                     </button>
 
-                    <div className={`transition-all duration-300 ease-in-out ${isQuickMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                        <div className="px-2 pb-6 pt-1 grid grid-cols-5 gap-y-6">
+                    <div className={`transition-all duration-300 ease-in-out ${isQuickMenuOpen ? 'max-h-[500px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                        <div className="grid grid-cols-5 gap-y-5">
                             {quickMenus.map((menu, idx) => (
                                 <div key={idx} className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform">
-                                    <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center text-emerald-500 shadow-sm mb-2">
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d={menu.icon} /></svg>
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-emerald-600 shadow-sm mb-1.5">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d={menu.icon} /></svg>
                                     </div>
-                                    <span className="text-[9px] sm:text-[10px] text-amber-900 font-bold text-center leading-tight px-1">
+                                    <span className="text-[9px] text-white font-medium text-center leading-tight px-1">
                                         {menu.name}
                                     </span>
                                 </div>
                             ))}
                         </div>
                     </div>
+                    {/* Drag Handle / Pill line at bottom */}
+                    <div onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)} className="w-20 h-1.5 bg-[#F1B929] rounded-full mx-auto mt-4 cursor-pointer hidden"></div>
                 </div>
 
-            </div>
+            </div> {/* AKHIR DARI WRAPPER PUTIH */}
+
 
             {/* ========================================= */}
-            {/* 2. BLOK REVENUE CHART                     */}
+            {/* 4. STATISTIK CASHFLOW (CHART 12 BULAN)    */}
             {/* ========================================= */}
-            <div className="px-4 mt-6">
-                <div className="border border-emerald-100 rounded-3xl p-5 bg-white bg-opacity-50">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-sm font-bold text-emerald-500">Revenue</h3>
-                        <div className="flex gap-2 text-xs text-emerald-600 font-medium scale-90 origin-right">
-                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-500 rounded-sm"></span>Penerimaan</span>
-                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-300 rounded-sm"></span>Piutang</span>
-                            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 bg-emerald-600 rounded-sm"></span>Biaya</span>
-                        </div>
-                    </div>
-                    <p className="text-2xl font-bold text-emerald-500">Rp 15.000.000</p>
-                    <div className="flex justify-between items-end h-24 mt-6 w-full gap-2">
-                        {[60, 80, 50, 90, 70, 85].map((h, i) => (
-                            <div key={i} className="flex-1 flex items-end h-full gap-0.5">
-                                <div className="w-full bg-emerald-500 rounded-t" style={{ height: `${h}%` }}></div>
-                                <div className="w-full bg-emerald-300 rounded-t" style={{ height: `${h * 0.7}%` }}></div>
-                                <div className="w-full bg-emerald-600 rounded-t" style={{ height: `${h * 0.4}%` }}></div>
-                            </div>
-                        ))}
+            <div className="mx-4 mt-5 bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
+                <div className="flex justify-between items-center mb-5">
+                    <h3 className="text-[13px] font-bold text-gray-800">Statistik Cashflow</h3>
+                    <div className="flex gap-2 text-[8px] font-bold">
+                        <span className="flex items-center gap-1 text-emerald-500"><span className="w-2 h-2 rounded-sm bg-emerald-500"></span>In</span>
+                        <span className="flex items-center gap-1 text-amber-400"><span className="w-2 h-2 rounded-sm bg-amber-400"></span>Piutang</span>
+                        <span className="flex items-center gap-1 text-rose-500"><span className="w-2 h-2 rounded-sm bg-rose-500"></span>Out</span>
                     </div>
                 </div>
-            </div>
 
-            {/* ========================================= */}
-            {/* 3. CARD RINGKASAN BULAN INI               */}
-            {/* ========================================= */}
-            <div className="mx-4 bg-white rounded-3xl p-4 shadow-sm mt-6">
-                <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm font-bold text-gray-800">Ringkasan Bulan Ini</span>
-                    <span className="text-xs text-gray-500 font-medium">Juni 2026</span>
-                </div>
-
-                <div className="flex gap-2 w-full">
-                    <div className="flex-1 bg-teal-100 bg-opacity-60 rounded-xl p-3 flex flex-col justify-between">
-                        <div>
-                            <div className="w-6 h-6 mb-2 text-teal-600 bg-teal-200 bg-opacity-50 p-1 rounded-md"><svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-                            <p className="text-xs font-medium text-gray-800 mb-0.5">Pendapatan</p>
-                            <p className="text-xs text-gray-500 scale-90 origin-left">Rp</p>
-                            <p className="text-sm font-black text-gray-900 leading-none mt-0.5">12.345.678</p>
-                            <p className="text-xs text-gray-500 mt-1.5 scale-90 origin-left">123 Invoices</p>
-                        </div>
-                    </div>
-                    <div className="flex-1 bg-amber-100 bg-opacity-60 rounded-xl p-3 flex flex-col justify-between">
-                        <div>
-                            <div className="w-6 h-6 mb-2 text-amber-600 bg-amber-200 bg-opacity-50 p-1 rounded-md"><svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg></div>
-                            <p className="text-xs font-medium text-gray-800 mb-0.5">Piutang</p>
-                            <p className="text-xs text-gray-500 scale-90 origin-left">Rp</p>
-                            <p className="text-sm font-black text-gray-900 leading-none mt-0.5">12.345.678</p>
-                            <p className="text-xs text-gray-500 mt-1.5 scale-90 origin-left">123 Invoices</p>
-                        </div>
-                    </div>
-                    <div className="flex-1 bg-rose-100 bg-opacity-60 rounded-xl p-3 flex flex-col justify-between">
-                        <div>
-                            <div className="w-6 h-6 mb-2 text-rose-500 bg-rose-200 bg-opacity-50 p-1 rounded-md"><svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg></div>
-                            <p className="text-xs font-medium text-gray-800 mb-0.5">Pengeluaran</p>
-                            <p className="text-xs text-gray-500 scale-90 origin-left">Rp</p>
-                            <p className="text-sm font-black text-gray-900 leading-none mt-0.5">12.345.678</p>
-                            <p className="text-xs text-gray-500 mt-1.5 scale-90 origin-left">123 Invoices</p>
-                        </div>
+                {/* HORIZONTAL SCROLLABLE CHART AREA */}
+                <div className="relative">
+                    <div ref={scrollRef} className="flex overflow-x-auto hide-scrollbar snap-x items-end gap-3 pb-2 pt-2 px-1">
+                        {chartData.map((d, i) => {
+                            const isCurrent = d.month === selectedMonth;
+                            return (
+                                <div key={i} onClick={() => setSelectedMonth(d.month)} className="flex flex-col items-center shrink-0 snap-center cursor-pointer group w-12">
+                                    {/* Balok Container */}
+                                    <div className="flex items-end gap-[3px] h-28 w-full justify-center border-b border-gray-100 pb-1">
+                                        <div className={`w-3 rounded-t-sm transition-all ${isCurrent ? 'bg-emerald-500' : 'bg-emerald-500/30 group-hover:bg-emerald-500/50'}`} style={{ height: `${d.in}%` }}></div>
+                                        <div className={`w-3 rounded-t-sm transition-all ${isCurrent ? 'bg-amber-400' : 'bg-amber-400/30 group-hover:bg-amber-400/50'}`} style={{ height: `${d.piutang}%` }}></div>
+                                        <div className={`w-3 rounded-t-sm transition-all ${isCurrent ? 'bg-rose-500' : 'bg-rose-500/30 group-hover:bg-rose-500/50'}`} style={{ height: `${d.out}%` }}></div>
+                                    </div>
+                                    {/* X-Axis Label */}
+                                    <span className={`mt-2 text-[10px] transition-colors ${isCurrent ? 'text-gray-900 font-black' : 'text-emerald-500 hover:text-emerald-700 font-bold'}`}>
+                                        {d.month}
+                                    </span>
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             </div>
 
             {/* ========================================= */}
-            {/* 4. TOP 5 KONSUMEN LOYAL                   */}
+            {/* 5. SUMMARY 3 KARTU (Berubah sesuai Filter)*/}
             {/* ========================================= */}
-            <div className="mx-4 mt-6 bg-white rounded-3xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-800 mb-5">Top 5 Konsumen Loyal</h3>
-                <div className="flex flex-col space-y-4">
+            <div className="mx-4 mt-4 flex gap-2">
+                <div className="flex-1 bg-[#D1F2EB] border border-[#A3E4D7] rounded-2xl p-2.5 shadow-sm flex flex-col justify-between h-24 transition-all">
+                    <div className="w-5 h-5 bg-emerald-400/30 text-emerald-700 rounded mb-1 flex items-center justify-center">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-bold text-emerald-900 leading-tight">Pendapatan</p>
+                        <p className="text-[8px] text-emerald-600 mb-0.5">Rp</p>
+                        <p className="text-[11px] font-black text-gray-800 font-mono leading-none">{activeChart.valIn}</p>
+                        <p className="text-[7px] text-emerald-600 mt-1">{activeChart.invIn} Invoices</p>
+                    </div>
+                </div>
+
+                <div className="flex-1 bg-[#FFF0C7] border border-[#FDEBD0] rounded-2xl p-2.5 shadow-sm flex flex-col justify-between h-24 transition-all">
+                    <div className="w-5 h-5 bg-amber-400/20 text-amber-600 rounded mb-1 flex items-center justify-center">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-bold text-amber-900 leading-tight">Piutang</p>
+                        <p className="text-[8px] text-amber-600 mb-0.5">Rp</p>
+                        <p className="text-[11px] font-black text-gray-800 font-mono leading-none">{activeChart.valPiu}</p>
+                        <p className="text-[7px] text-amber-600 mt-1">{activeChart.invPiu} Invoices</p>
+                    </div>
+                </div>
+
+                <div className="flex-1 bg-[#FADBD8] border border-[#F5B7B1] rounded-2xl p-2.5 shadow-sm flex flex-col justify-between h-24 transition-all">
+                    <div className="w-5 h-5 bg-rose-400/20 text-rose-600 rounded mb-1 flex items-center justify-center">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /></svg>
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-bold text-rose-900 leading-tight">Pengeluaran</p>
+                        <p className="text-[8px] text-rose-600 mb-0.5">Rp</p>
+                        <p className="text-[11px] font-black text-gray-800 font-mono leading-none">{activeChart.valOut}</p>
+                        <p className="text-[7px] text-rose-600 mt-1">{activeChart.invOut} Invoices</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* ========================================= */}
+            {/* 6. TOP 5 KONSUMEN LOYAL                   */}
+            {/* ========================================= */}
+            <div className="mx-4 mt-4 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+                <h3 className="text-[13px] font-bold text-gray-800 mb-4">Top 5 Konsumen Loyal</h3>
+                <div className="flex flex-col space-y-3.5">
                     {topConsumers.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center">
+                        <div key={idx} className="flex justify-between items-center border-b border-gray-50 pb-2 last:border-0 last:pb-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                                <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
                                     {item.name.charAt(0)}
                                 </div>
-                                <span className="text-xs font-semibold text-gray-800">{item.name}</span>
+                                <div>
+                                    <p className="text-[11px] font-bold text-gray-800">{item.name}</p>
+                                    <span className="text-[8px] font-bold text-amber-700 bg-amber-200 px-1.5 py-0.5 rounded leading-none inline-block mt-0.5">
+                                        {item.orders} ORDER
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded scale-90 origin-right">
-                                    {item.orders} ORDER
-                                </span>
-                                <span className="text-xs font-mono font-medium text-gray-600 w-20 text-right">
-                                    Rp {item.total}
-                                </span>
+                            <div className="text-right">
+                                <p className="text-[7px] font-bold text-gray-400 mb-0.5 bg-gray-100 px-1.5 py-0.5 rounded inline-block tracking-widest">PEMBELIAN</p>
+                                <p className="text-[11px] font-black text-gray-800 font-mono">Rp {item.total}</p>
                             </div>
                         </div>
                     ))}
@@ -256,26 +308,27 @@ export default function DashboardView({ onOpenPos }: { onOpenPos: () => void }) 
             </div>
 
             {/* ========================================= */}
-            {/* 5. TOP 5 MENU TERLARIS                    */}
+            {/* 7. TOP 5 MENU TERLARIS                    */}
             {/* ========================================= */}
-            <div className="mx-4 mt-6 bg-white rounded-3xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-800 mb-5">Top 5 Menu Terlaris</h3>
-                <div className="flex flex-col space-y-4">
+            <div className="mx-4 mt-4 bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+                <h3 className="text-[13px] font-bold text-gray-800 mb-4">Top 5 Menu Terlaris</h3>
+                <div className="flex flex-col space-y-3.5">
                     {topMenus.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center">
+                        <div key={idx} className="flex justify-between items-center border-b border-gray-50 pb-2 last:border-0 last:pb-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
-                                    {item.name.charAt(0)}
+                                <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-bold shadow-sm">
+                                    {idx + 1}
                                 </div>
-                                <span className="text-xs font-semibold text-gray-800">{item.name}</span>
+                                <div>
+                                    <p className="text-[11px] font-bold text-gray-800">{item.name}</p>
+                                    <span className="text-[8px] font-bold text-amber-700 bg-amber-200 px-1.5 py-0.5 rounded leading-none inline-block mt-0.5">
+                                        {item.orders} ORDER
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded scale-90 origin-right">
-                                    {item.orders} ORDER
-                                </span>
-                                <span className="text-xs font-mono font-medium text-gray-600 w-20 text-right">
-                                    Rp {item.total}
-                                </span>
+                            <div className="text-right">
+                                <p className="text-[7px] font-bold text-gray-400 mb-0.5 bg-gray-100 px-1.5 py-0.5 rounded inline-block tracking-widest">PENJUALAN</p>
+                                <p className="text-[11px] font-black text-gray-800 font-mono">Rp {item.total}</p>
                             </div>
                         </div>
                     ))}
