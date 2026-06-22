@@ -1,0 +1,10 @@
+{
+  "name": "YoriPOS V3 PWA Mobile",
+  "short_name": "YoriPOS Mobile",
+  "start_url": "/pwa",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0a09",
+  "theme_color": "#1c1917",
+  "icons": []
+}

@@ -281,6 +281,47 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Transaksi tidak ditemukan.' }, { status: 404 });
     }
 
+    // ─── Pay Piutang Flow: settle outstanding invoice ───
+    if (action === 'pay_piutang') {
+      if (sale.status !== 'piutang') {
+        return NextResponse.json({
+          success: false,
+          error: 'Transaksi harus berstatus PIUTANG untuk dilunasi.'
+        }, { status: 400 });
+      }
+
+      if (!payment_method) {
+        return NextResponse.json({ success: false, error: 'payment_method wajib.' }, { status: 400 });
+      }
+
+      const methodUpper = (payment_method || '').toUpperCase();
+      const isQrisOrTransfer = methodUpper.includes('QRIS') || methodUpper.includes('TRANSFER');
+      if (isQrisOrTransfer && (!payment_proof || payment_proof.trim() === '')) {
+        return NextResponse.json({
+          success: false, error: 'Bukti bayar wajib untuk QRIS/Transfer!'
+        }, { status: 400 });
+      }
+
+      const newInvoiceNo = sale.invoice_no.replace('INV-', 'KWI-');
+
+      const updated = await prisma.sale.update({
+        where: { id: saleIdParsed },
+        data: {
+          status: 'lunas',
+          payment_method: payment_method,
+          payment_proof: payment_proof || null,
+          amount_paid: sale.total_amount,
+          invoice_no: newInvoiceNo,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Piutang ${newInvoiceNo} — LUNAS ✅`,
+        data: updated,
+      });
+    }
+
     if (sale.status !== 'ready') {
       return NextResponse.json({
         success: false,

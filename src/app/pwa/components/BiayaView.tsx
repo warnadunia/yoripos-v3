@@ -1,0 +1,296 @@
+'use client';
+
+import React, { useState } from 'react';
+
+export default function BiayaView() {
+    const [selectedYear, setSelectedYear] = useState('2026');
+    const [selectedMonth, setSelectedMonth] = useState(5); // Index 5 = Juni
+
+    // Modal States
+    // 'none' | 'add_choice' | 'form_biaya' | 'form_stock'
+    const [activeModal, setActiveModal] = useState('none');
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    // Dummy data chart pengeluaran per bulan
+    const chartData = [30, 45, 25, 60, 40, 85, 20, 10, 15, 25, 30, 40];
+
+    // Dummy data List Pengeluaran
+    const expenses = [
+        { id: 1, date: '15', month: '06', title: 'Bayar Listrik Toko', category: 'OPERASIONAL', type: 'BIAYA', amount: '450.000', badge: 'bg-rose-100 text-rose-600' },
+        { id: 2, date: '12', month: '06', name: 'Grosir Pak Haji', title: 'Restock Telur AKAM', category: 'KULAKAN', type: 'STOCK', amount: '2.500.000', badge: 'bg-indigo-100 text-indigo-600' },
+        { id: 3, date: '10', month: '06', title: 'Gaji Karyawan (Admin)', category: 'GAJI', type: 'BIAYA', amount: '1.500.000', badge: 'bg-rose-100 text-rose-600' },
+        { id: 4, date: '05', month: '06', name: 'Toko Plastik Jaya', title: 'Kresek & Isolasi', category: 'KULAKAN', type: 'STOCK', amount: '150.000', badge: 'bg-indigo-100 text-indigo-600' },
+    ];
+
+    return (
+        <div className="w-full pb-28 relative min-h-screen bg-teal-50">
+            <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }` }} />
+
+            {/* ========================================= */}
+            {/* 1. HEADER & CHART PENGELUARAN             */}
+            {/* ========================================= */}
+            <div className="w-full bg-emerald-500 rounded-b-3xl pb-8">
+
+                {/* NAVBAR */}
+                <div className="flex justify-between items-center p-4 text-white">
+                    <button><svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg></button>
+                    <h1 className="text-lg font-bold tracking-wide">Data Pengeluaran</h1>
+                    <button className="w-8 h-8 rounded-full border-2 border-white/50 font-bold flex items-center justify-center">!</button>
+                </div>
+
+                {/* INFO TOKO & FILTER TAHUN */}
+                <div className="px-4 pb-4 pt-2 text-white flex justify-between items-center">
+                    <h2 className="text-xl font-bold">Toko Tuan dan Nyonya</h2>
+                    <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="bg-white text-slate-800 text-xs font-bold py-1.5 px-3 rounded-lg outline-none cursor-pointer">
+                        <option value="2026">2026</option><option value="2025">2025</option>
+                    </select>
+                </div>
+
+                {/* CHART 12 BULAN */}
+                <div className="mx-4 bg-teal-50 bg-opacity-95 rounded-2xl p-4 shadow-sm mb-4">
+                    <div className="flex justify-between items-center mb-3">
+                        <span className="text-xs font-bold text-emerald-800">Grafik Pengeluaran Kas</span>
+                    </div>
+
+                    <div className="flex items-end justify-between h-28 gap-1 pb-2 border-b border-emerald-200/50">
+                        {chartData.map((h, i) => {
+                            const isActive = selectedMonth === i;
+                            return (
+                                <div key={i} className={`flex-1 flex flex-col justify-end h-full w-full opacity-90 ${isActive ? 'opacity-100 scale-105' : ''}`}>
+                                    <div className={`w-full rounded-t-sm transition-all duration-300 ${isActive ? 'bg-rose-500' : 'bg-rose-300'}`} style={{ height: `${h}%` }}></div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="flex justify-between mt-2 px-1">
+                        {months.map((m, i) => <span key={i} className={`text-xs scale-75 origin-center -rotate-90 block mt-2 font-medium ${selectedMonth === i ? 'text-emerald-800 font-bold' : 'text-emerald-600'}`}>{m}</span>)}
+                    </div>
+                </div>
+
+                {/* HORIZONTAL SCROLL CARDS (Filter Bulan) */}
+                <div className="flex overflow-x-auto gap-2 px-4 pb-2 snap-x hide-scrollbar">
+                    {months.map((m, i) => (
+                        <div key={i} onClick={() => setSelectedMonth(i)} className={`snap-center shrink-0 w-24 p-2.5 rounded-xl cursor-pointer transition-colors ${selectedMonth === i ? 'bg-emerald-900 text-white' : 'bg-emerald-400 bg-opacity-40 text-emerald-900'}`}>
+                            <span className="text-xs font-bold">{m.toUpperCase()}</span>
+                            <p className="text-[10px] font-bold mt-2">Rp 4.6 Jt</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* ========================================= */}
+            {/* 2. CARD SUMMARY PENGELUARAN               */}
+            {/* ========================================= */}
+            <div className="mx-4 -mt-6 relative z-10">
+                <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+                    <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-slate-700">Total Kas Keluar {months[selectedMonth]} {selectedYear}</span>
+                        <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">12 TRX</span>
+                    </div>
+                    <p className="text-2xl font-black text-rose-600 mb-4">Rp 4.600.000</p>
+
+                    <div className="flex gap-2">
+                        {/* KULAKAN (STOCK) */}
+                        <div className="flex-1 bg-indigo-50 rounded-xl p-3 border border-indigo-100">
+                            <span className="text-[10px] font-bold text-indigo-700 block mb-1 uppercase tracking-wide">Belanja Stok</span>
+                            <p className="text-xs text-indigo-600 mb-0.5">Rp</p>
+                            <p className="text-sm font-black text-indigo-800 leading-none">2.650.000</p>
+                        </div>
+
+                        {/* BIAYA OPERASIONAL */}
+                        <div className="flex-1 bg-rose-50 rounded-xl p-3 border border-rose-100">
+                            <span className="text-[10px] font-bold text-rose-700 block mb-1 uppercase tracking-wide">Biaya Ops</span>
+                            <p className="text-xs text-rose-600 mb-0.5">Rp</p>
+                            <p className="text-sm font-black text-rose-800 leading-none">1.950.000</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ========================================= */}
+            {/* 3. LISTING PENGELUARAN                    */}
+            {/* ========================================= */}
+            <div className="mx-4 mt-4 bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+                <h3 className="text-xs font-bold text-slate-800 mb-4">Rincian Kas Keluar bulan {months[selectedMonth]}</h3>
+
+                <div className="flex flex-col space-y-4">
+                    {expenses.map(exp => (
+                        <div key={exp.id} className="border-b border-slate-100 pb-4 last:border-0 last:pb-0 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-slate-800 text-white rounded-lg p-1.5 flex flex-col items-center justify-center min-w-[36px] shadow-sm">
+                                    <span className="text-xs font-bold leading-none">{exp.date}</span>
+                                    <span className="text-[10px] scale-90 leading-none mt-0.5">{exp.month}</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800">{exp.title}</p>
+                                    <p className="text-[10px] text-slate-500 mt-0.5">{exp.name || exp.type}</p>
+                                </div>
+                            </div>
+
+                            <div className="text-right flex flex-col items-end">
+                                <p className="text-xs font-mono text-slate-700 font-semibold"><span className="text-[10px] scale-90 text-slate-400 mr-1">Rp</span>{exp.amount}</p>
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded mt-1 inline-block ${exp.badge}`}>
+                                    {exp.category}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* ========================================= */}
+            {/* FLOATING ACTION BUTTON (+)                */}
+            {/* ========================================= */}
+            <button
+                onClick={() => setActiveModal('add_choice')}
+                className="fixed bottom-24 right-6 w-14 h-14 bg-emerald-500 rounded-full shadow-[0_8px_20px_rgba(16,185,129,0.4)] flex items-center justify-center text-white z-40 hover:bg-emerald-600 transition-transform active:scale-90"
+            >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+            </button>
+
+            {/* ========================================================================= */}
+            {/* OVERLAYS / BOTTOM SHEETS SECTION (CHOICE, FORM BIAYA, FORM STOCK)         */}
+            {/* ========================================================================= */}
+            {activeModal !== 'none' && (
+                <div className="fixed inset-0 z-[60] flex items-end justify-center">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-slate-900 bg-opacity-60 backdrop-blur-sm transition-opacity" onClick={() => setActiveModal('none')}></div>
+
+                    {/* 1. BOTTOM SHEET : C H O I C E (Pilih Jenis) */}
+                    {activeModal === 'add_choice' && (
+                        <div className="relative w-full max-w-md bg-white rounded-t-3xl p-6 pb-28 shadow-2xl animate-slideUp">
+                            {/* Drag Handle */}
+                            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+
+                            <h3 className="text-lg font-bold text-slate-800 mb-1 text-center">Catat Kas Keluar</h3>
+                            <p className="text-xs text-slate-500 text-center mb-6">Pilih jenis pengeluaran yang ingin dicatat</p>
+
+                            <div className="flex flex-col gap-3">
+                                {/* Opsi Restock (Aset) */}
+                                <button
+                                    onClick={() => setActiveModal('form_stock')}
+                                    className="flex items-center gap-4 p-4 rounded-2xl border-2 border-indigo-100 bg-indigo-50 hover:bg-indigo-100 transition-colors text-left"
+                                >
+                                    <div className="w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-indigo-900 mb-0.5">Kulakan / Restock (Aset)</h4>
+                                        <p className="text-[10px] text-indigo-700 leading-tight">Uang keluar untuk beli bahan baku/barang yang akan menambah Kuantitas Stok.</p>
+                                    </div>
+                                </button>
+
+                                {/* Opsi Biaya (Beban) */}
+                                <button
+                                    onClick={() => setActiveModal('form_biaya')}
+                                    className="flex items-center gap-4 p-4 rounded-2xl border-2 border-rose-100 bg-rose-50 hover:bg-rose-100 transition-colors text-left"
+                                >
+                                    <div className="w-12 h-12 bg-rose-500 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-rose-900 mb-0.5">Biaya Operasional (Beban)</h4>
+                                        <p className="text-[10px] text-rose-700 leading-tight">Uang keluar untuk biaya rutin seperti listrik, gaji karyawan, bensin, atau alat kebersihan.</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 2. BOTTOM SHEET : F O R M  R E S T O C K */}
+                    {activeModal === 'form_stock' && (
+                        <div className="relative w-full h-[85vh] max-w-md bg-white rounded-t-3xl p-6 pb-28 shadow-2xl animate-slideUp flex flex-col">
+                            {/* Drag Handle */}
+                            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 shrink-0"></div>
+
+                            <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-100 shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg></div>
+                                    <h3 className="text-base font-bold text-slate-800">Input Restock Stok</h3>
+                                </div>
+                                <button onClick={() => setActiveModal('add_choice')} className="p-1 rounded-full hover:bg-slate-100 text-slate-500"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto hide-scrollbar space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-600 block mb-1">Tanggal Nota</label>
+                                    <input type="date" className="w-full border border-slate-300 rounded-lg p-3 text-sm text-slate-800 font-medium outline-none" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-600 block mb-1">Supplier / Toko</label>
+                                    <input type="text" placeholder="Contoh: Grosir Pak Haji" className="w-full border border-slate-300 rounded-lg p-3 text-sm text-slate-800 outline-none" />
+                                </div>
+
+                                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mt-2">
+                                    <p className="text-xs font-bold text-indigo-800 mb-3">Item Dibeli</p>
+                                    <div className="space-y-3">
+                                        <div className="flex gap-2">
+                                            <select className="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 outline-none bg-white"><option>Telur AKAM</option></select>
+                                            <input type="number" placeholder="Qty" className="w-20 border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 outline-none" />
+                                        </div>
+                                        <input type="text" placeholder="Total Harga (Rp)" className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 outline-none" />
+                                    </div>
+                                    <button className="w-full mt-3 border border-dashed border-indigo-300 text-indigo-600 text-xs font-bold py-2 rounded-lg bg-white">+ Tambah Item Lain</button>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 mt-2 border-t border-slate-100 shrink-0">
+                                <button className="w-full bg-indigo-600 text-white rounded-lg py-3 text-sm font-bold shadow-md hover:bg-indigo-700" onClick={() => setActiveModal('none')}>SIMPAN DATA RESTOCK</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 3. BOTTOM SHEET : F O R M  B I A Y A */}
+                    {activeModal === 'form_biaya' && (
+                        <div className="relative w-full h-[85vh] max-w-md bg-white rounded-t-3xl p-6 pb-28 shadow-2xl animate-slideUp flex flex-col">
+                            {/* Drag Handle */}
+                            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 shrink-0"></div>
+
+                            <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-100 shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg></div>
+                                    <h3 className="text-base font-bold text-slate-800">Catat Biaya Ops</h3>
+                                </div>
+                                <button onClick={() => setActiveModal('add_choice')} className="p-1 rounded-full hover:bg-slate-100 text-slate-500"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto hide-scrollbar space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-600 block mb-1">Kategori Biaya</label>
+                                    <select className="w-full border border-slate-300 rounded-lg p-3 text-sm text-slate-800 outline-none bg-white">
+                                        <option>Listrik & Air</option><option>Gaji Karyawan</option><option>Bensin & Transport</option><option>Lain-lain</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-600 block mb-1">Judul / Keterangan</label>
+                                    <input type="text" placeholder="Contoh: Beli token listrik" className="w-full border border-slate-300 rounded-lg p-3 text-sm text-slate-800 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-600 block mb-1">Jumlah Uang Keluar</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-3 text-slate-500 font-bold">Rp</span>
+                                        <input type="number" placeholder="0" className="w-full border border-slate-300 rounded-lg p-3 pl-10 text-lg font-black text-slate-800 outline-none focus:border-rose-500" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-600 block mb-1">Bukti Nota / Struk <span className="font-normal text-slate-400">(Opsional)</span></label>
+                                    <div className="flex border border-slate-300 rounded-lg overflow-hidden bg-slate-50">
+                                        <button className="bg-slate-200 text-slate-700 text-xs font-bold px-4 py-3 border-r border-slate-300">Foto Kamera</button>
+                                        <div className="px-4 py-3 text-xs text-slate-400">Belum ada foto</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 mt-2 border-t border-slate-100 shrink-0">
+                                <button className="w-full bg-rose-600 text-white rounded-lg py-3 text-sm font-bold shadow-md hover:bg-rose-700" onClick={() => setActiveModal('none')}>SIMPAN PENGELUARAN</button>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            )}
+
+        </div>
+    );
+}

@@ -28,14 +28,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id">
-      <body 
+      <body
         className={`${inter.className} bg-slate-50 text-slate-900 antialiased selection:bg-blue-200 selection:text-blue-900`}
       >
         {/* Container Utama:
           - min-h-screen: Memastikan tinggi penuh
           - pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]: Menangani notch/home indicator pada iOS/Android via Capacitor 
         */}
-        <main className="relative flex min-h-screen flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <main className="relative min-h-screen flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
           {children}
         </main>
       </body>
