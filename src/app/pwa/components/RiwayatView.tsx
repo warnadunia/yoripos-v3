@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 
-//export default function RiwayatView({ onOpenKitchen }: { onOpenKitchen?: () => void }) {
 export default function RiwayatView({ onOpenKitchen, onOpenSidebar }: { onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
     const [selectedYear, setSelectedYear] = useState('2026');
 
