@@ -82,8 +82,6 @@ export default function PosView({ onBack }: { onBack: () => void }) {
     };
 
     const completeTransaction = () => {
-        // Jangan clear state cart DULU sebelum modal ditutup, 
-        // Biar datanya tetap bisa dibaca oleh halaman Struk.
         setCart([]);
         resetCheckout();
     };
@@ -101,7 +99,17 @@ export default function PosView({ onBack }: { onBack: () => void }) {
 
     return (
         <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col font-sans">
-            <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }` }} />
+            {/* Animasi kustom biar switch grid/list anti-glitch */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .hide-scrollbar::-webkit-scrollbar { display: none; } 
+                .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                @keyframes fadeInScale { 
+                    from { opacity: 0; transform: scale(0.98); } 
+                    to { opacity: 1; transform: scale(1); } 
+                }
+                .animate-fade-in-scale { animation: fadeInScale 0.25s ease-out forwards; }
+            ` }} />
 
             {/* === HEADER === */}
             <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shrink-0 shadow-sm gap-3">
@@ -143,8 +151,9 @@ export default function PosView({ onBack }: { onBack: () => void }) {
             </div>
 
             {/* === PRODUCT CATALOG === */}
-            <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
-                <div className={`grid gap-3 pb-24 ${viewMode === 'grid' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 bg-slate-50">
+                {/* KEY dan ANIMASI dipasang di parent grid */}
+                <div key={viewMode} className={`grid gap-3 pb-24 animate-fade-in-scale ${viewMode === 'grid' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     {filteredProducts.map(product => {
                         const cartItem = cart.find(item => item.id === product.id);
 
