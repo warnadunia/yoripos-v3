@@ -99,16 +99,11 @@ export default function PosView({ onBack }: { onBack: () => void }) {
 
     return (
         <div className="fixed inset-0 bg-slate-50 z-50 flex flex-col font-sans">
-            {/* Animasi kustom biar switch grid/list anti-glitch */}
+            {/* Animasi kustom dihapus total untuk menghindari GPU tearing di Android */}
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .hide-scrollbar::-webkit-scrollbar { display: none; } 
                 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                @keyframes fadeInScale { 
-                    from { opacity: 0; transform: scale(0.98); } 
-                    to { opacity: 1; transform: scale(1); } 
-                }
-                .animate-fade-in-scale { animation: fadeInScale 0.25s ease-out forwards; }
             ` }} />
 
             {/* === HEADER === */}
@@ -152,8 +147,8 @@ export default function PosView({ onBack }: { onBack: () => void }) {
 
             {/* === PRODUCT CATALOG === */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 bg-slate-50">
-                {/* KEY dan ANIMASI dipasang di parent grid */}
-                <div key={viewMode} className={`grid gap-3 pb-24 animate-fade-in-scale ${viewMode === 'grid' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                {/* Dibuat se-simple mungkin tanpa key/animasi berat biar gak glitch */}
+                <div className={`grid gap-3 pb-24 ${viewMode === 'grid' ? 'grid-cols-2' : 'grid-cols-1'}`}>
                     {filteredProducts.map(product => {
                         const cartItem = cart.find(item => item.id === product.id);
 
@@ -169,7 +164,7 @@ export default function PosView({ onBack }: { onBack: () => void }) {
                                     <p className="text-xs font-black text-emerald-600 mb-3">Rp {product.price.toLocaleString('id-ID')}</p>
                                 </div>
                                 {cartItem ? (
-                                    <div className="w-full flex items-center justify-between bg-emerald-50 rounded-xl border border-emerald-100 h-9 px-1 transform-gpu">
+                                    <div className="w-full flex items-center justify-between bg-emerald-50 rounded-xl border border-emerald-100 h-9 px-1">
                                         <button onClick={() => updateQuantity(product.id, -1)} className="w-8 h-full flex items-center justify-center text-emerald-600 font-black active:bg-emerald-200 rounded-lg text-lg transition-colors">-</button>
                                         <span className="text-xs font-bold text-emerald-900 w-6 text-center">{cartItem.qty}</span>
                                         <button onClick={() => updateQuantity(product.id, 1)} className="w-8 h-full flex items-center justify-center text-emerald-600 font-black active:bg-emerald-200 rounded-lg text-lg transition-colors">+</button>
@@ -190,7 +185,7 @@ export default function PosView({ onBack }: { onBack: () => void }) {
                                 </div>
                                 <div className="w-28 shrink-0">
                                     {cartItem ? (
-                                        <div className="w-full flex items-center justify-between bg-emerald-50 rounded-xl border border-emerald-100 h-9 px-1 transform-gpu">
+                                        <div className="w-full flex items-center justify-between bg-emerald-50 rounded-xl border border-emerald-100 h-9 px-1">
                                             <button onClick={() => updateQuantity(product.id, -1)} className="w-8 h-full flex items-center justify-center text-emerald-600 font-black active:bg-emerald-200 rounded-lg text-lg transition-colors">-</button>
                                             <span className="text-xs font-bold text-emerald-900 w-6 text-center">{cartItem.qty}</span>
                                             <button onClick={() => updateQuantity(product.id, 1)} className="w-8 h-full flex items-center justify-center text-emerald-600 font-black active:bg-emerald-200 rounded-lg text-lg transition-colors">+</button>
