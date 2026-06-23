@@ -8,32 +8,45 @@ import PesananView from './components/PesananView';
 import PiutangView from './components/PiutangView';
 import BiayaView from './components/BiayaView';
 import PosView from './components/PosView';
+import KitchenView from './components/KitchenView'; // JANGAN LUPA IMPORT INI
+
+// Dummy Komponen untuk tab yang belum dibikin
+const DummyView = ({ title }: { title: string }) => (
+  <div className="flex items-center justify-center min-h-screen text-slate-400 font-bold">{title}</div>
+);
 
 export default function PwaMainContainer() {
   // Default tab saat pertama kali render
   const [activeTab, setActiveTab] = useState('dashboard');
-
-  // State ini yang pegang kendali untuk nampilin POS full screen
   const [isPosOpen, setIsPosOpen] = useState(false);
+
+  // STATE BARU UNTUK KITCHEN
+  const [isKitchenOpen, setIsKitchenOpen] = useState(false);
 
   return (
     <>
-      {isPosOpen ? (
-        // Render POS full screen menutupi semuanya
-        <PosView onBack={() => setIsPosOpen(false)} />
-      ) : (
-        // Render struktur Dashboard dan BottomNav yang sebelumnya
+      {/* Tumpukan Layar Full Screen (Prioritas Tertinggi) */}
+      {isPosOpen && <PosView onBack={() => setIsPosOpen(false)} />}
+      {isKitchenOpen && <KitchenView onBack={() => setIsKitchenOpen(false)} />}
+
+      {/* Tampilkan layout utama HANYA JIKA POS & Kitchen tertutup */}
+      {!isPosOpen && !isKitchenOpen && (
         <div className="min-h-screen mx-auto shadow-2xl relative overflow-x-hidden antialiased bg-teal-50">
 
           {/* RENDER PAGES BERDASARKAN SELECTION */}
           <div className="transition-all duration-150">
-            {/* PASSING fungsi setIsPosOpen ke DashboardView lewat props */}
             {activeTab === 'dashboard' && <DashboardView onOpenPos={() => setIsPosOpen(true)} />}
-
             {activeTab === 'transaksi' && <RiwayatView />}
-            {activeTab === 'pesanan' && <PesananView />}
-            {activeTab === 'piutang' && <PiutangView />}
-            {activeTab === 'biaya' && <BiayaView />}
+
+            {/* PASSING PROPS onOpenKitchen KE SINI 👇 */}
+            {activeTab === 'pesanan' && (
+              <PesananView
+                onOpenKitchen={() => setIsKitchenOpen(true)}
+                onOpenPos={() => setIsPosOpen(true)} /* <-- INI NYAWANYA BRO! */
+              />
+            )}
+            {activeTab === 'piutang' && <PiutangView onOpenKitchen={() => setIsKitchenOpen(true)} />}
+            {activeTab === 'biaya' && <BiayaView onOpenKitchen={() => setIsKitchenOpen(true)} />}
           </div>
 
           {/* FIXED BOTTOM NAV COMPONENT */}
