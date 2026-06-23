@@ -31,22 +31,38 @@ export default function PwaMainContainer() {
 
       {/* Tampilkan layout utama HANYA JIKA POS & Kitchen tertutup */}
       {!isPosOpen && !isKitchenOpen && (
-        <div className="min-h-screen mx-auto shadow-2xl relative overflow-x-hidden antialiased bg-teal-50">
+        <div className="min-h-screen mx-auto shadow-2xl relative overflow-x-hidden antialiased bg-slate-50">
 
           {/* RENDER PAGES BERDASARKAN SELECTION */}
           <div className="transition-all duration-150">
-            {activeTab === 'dashboard' && <DashboardView onOpenPos={() => setIsPosOpen(true)} />}
-            {activeTab === 'transaksi' && <RiwayatView />}
 
-            {/* PASSING PROPS onOpenKitchen KE SINI 👇 */}
+            {activeTab === 'dashboard' && (
+              <DashboardView
+                onOpenKitchen={() => setIsKitchenOpen(true)}
+                onOpenPos={() => setIsPosOpen(true)}
+              />
+            )}
+            {activeTab === 'transaksi' && (
+              <RiwayatView
+                onOpenKitchen={() => setIsKitchenOpen(true)}
+              />
+            )}
             {activeTab === 'pesanan' && (
               <PesananView
                 onOpenKitchen={() => setIsKitchenOpen(true)}
-                onOpenPos={() => setIsPosOpen(true)} /* <-- INI NYAWANYA BRO! */
+                onOpenPos={() => setIsPosOpen(true)}
               />
             )}
-            {activeTab === 'piutang' && <PiutangView onOpenKitchen={() => setIsKitchenOpen(true)} />}
-            {activeTab === 'biaya' && <BiayaView onOpenKitchen={() => setIsKitchenOpen(true)} />}
+            {activeTab === 'piutang' && (
+              <PiutangView
+                onOpenKitchen={() => setIsKitchenOpen(true)}
+              />
+            )}
+            {activeTab === 'biaya' && (
+              <BiayaView
+                onOpenKitchen={() => setIsKitchenOpen(true)}
+              />
+            )}
           </div>
 
           {/* FIXED BOTTOM NAV COMPONENT */}
