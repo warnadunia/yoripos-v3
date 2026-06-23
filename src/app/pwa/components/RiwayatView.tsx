@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 
 //export default function RiwayatView({ onOpenKitchen }: { onOpenKitchen?: () => void }) {
-export default function RiwayatView({ onOpenPos, onOpenKitchen, onOpenSidebar }: { onOpenPos: () => void, onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
+export default function RiwayatView({ onOpenKitchen, onOpenSidebar }: { onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
     const [selectedYear, setSelectedYear] = useState('2026');
 
     // Otomatis deteksi bulan berjalan (0 = Jan, 11 = Des)

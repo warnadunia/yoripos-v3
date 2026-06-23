@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 
 // export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => void }) {
-export default function PiutangView({ onOpenPos, onOpenKitchen, onOpenSidebar }: { onOpenPos: () => void, onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
+export default function PiutangView({ onOpenKitchen, onOpenSidebar }: { onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
     const [selectedYear, setSelectedYear] = useState('2026');
 
     // Otomatis deteksi bulan berjalan (0 = Jan, 11 = Des)

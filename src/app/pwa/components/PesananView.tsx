@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 
-// export default function PesananView({ onOpenKitchen, onOpenPos }: { onOpenKitchen?: () => void, onOpenPos?: () => void }) {
-
 export default function PesananView({ onOpenPos, onOpenKitchen, onOpenSidebar }: { onOpenPos: () => void, onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
     const [selectedYear, setSelectedYear] = useState('2026');
 
