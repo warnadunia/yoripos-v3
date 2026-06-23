@@ -36,12 +36,13 @@ export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => v
         { real: 0, sisa: 0 }, { real: 0, sisa: 0 }, { real: 0, sisa: 0 },
     ];
 
+    // Ditambahkan dummy array 'items' untuk memunculkan rincian belanja
     const invoices = [
-        { id: 1, date: '12', month: '06', name: 'Agam Warmindo', inv: 'INV - 123456789', amount: '534.234', status: 'BELUM LUNAS', badge: 'bg-amber-100 text-amber-600', type: 'SISA' },
-        { id: 2, date: '10', month: '06', name: 'SS Telur', inv: 'INV - 123456789', amount: '230.234', status: 'JATUH TEMPO', badge: 'bg-red-100 text-red-600', type: 'SISA' },
-        { id: 3, date: '08', month: '06', name: 'Bakpia 3 Generasi', inv: 'INV - 123456789', amount: '123.098', status: 'BELUM LUNAS', badge: 'bg-amber-100 text-amber-600', type: 'SISA' },
-        { id: 4, date: '05', month: '06', name: 'Lisa Untari', inv: 'INV - 123456789', amount: '34.098', status: 'LUNAS', badge: 'bg-emerald-100 text-emerald-600', type: 'LUNAS' },
-        { id: 5, date: '01', month: '06', name: 'Modang', inv: 'INV - 123456789', amount: '12.098', status: 'LUNAS', badge: 'bg-emerald-100 text-emerald-600', type: 'LUNAS' },
+        { id: 1, date: '12', month: '06', name: 'Agam Warmindo', inv: 'INV - 123456789', amount: '534.234', status: 'BELUM LUNAS', badge: 'bg-amber-100 text-amber-600', type: 'SISA', items: [{ name: 'Telur AKAM Herbal (Tray)', qty: 2, price: '250.000', total: '500.000' }, { name: 'Ongkir Delivery', qty: 1, price: '34.234', total: '34.234' }] },
+        { id: 2, date: '10', month: '06', name: 'SS Telur', inv: 'INV - 123456788', amount: '230.234', status: 'JATUH TEMPO', badge: 'bg-red-100 text-red-600', type: 'SISA', items: [{ name: 'Telur Puyuh Rebus', qty: 10, price: '20.000', total: '200.000' }, { name: 'Plastik Besar', qty: 1, price: '30.234', total: '30.234' }] },
+        { id: 3, date: '08', month: '06', name: 'Bakpia 3 Generasi', inv: 'INV - 123456787', amount: '123.098', status: 'BELUM LUNAS', badge: 'bg-amber-100 text-amber-600', type: 'SISA', items: [{ name: 'Gula Pasir 1kg', qty: 5, price: '18.000', total: '90.000' }, { name: 'Margarin', qty: 2, price: '16.549', total: '33.098' }] },
+        { id: 4, date: '05', month: '06', name: 'Lisa Untari', inv: 'INV - 123456786', amount: '34.098', status: 'LUNAS', badge: 'bg-emerald-100 text-emerald-600', type: 'LUNAS', items: [{ name: 'Kopi Americano Ice', qty: 1, price: '18.000', total: '18.000' }, { name: 'Croissant Butter', qty: 1, price: '16.098', total: '16.098' }] },
+        { id: 5, date: '01', month: '06', name: 'Modang', inv: 'INV - 123456785', amount: '12.098', status: 'LUNAS', badge: 'bg-emerald-100 text-emerald-600', type: 'LUNAS', items: [{ name: 'Teh Es Manis', qty: 2, price: '6.049', total: '12.098' }] },
     ];
 
     const filteredInvoices = invoices.filter(inv => activeFilter ? inv.type === activeFilter : true);
@@ -98,7 +99,7 @@ export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => v
                     {months.map((m, i) => (
                         <div
                             key={i}
-                            id={`piutang-month-${i}`} // ID untuk target scroll
+                            id={`piutang-month-${i}`}
                             onClick={() => setSelectedMonth(i)}
                             className={`snap-center shrink-0 w-24 p-2.5 rounded-xl cursor-pointer transition-colors transform-gpu duration-300 ${selectedMonth === i ? 'bg-emerald-900 text-white shadow-inner scale-[1.02]' : 'bg-emerald-400 bg-opacity-40 text-emerald-900 hover:bg-opacity-60'}`}
                         >
@@ -123,8 +124,7 @@ export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => v
                     <div className="flex gap-2">
                         {/* KARTU LUNAS / REALISASI */}
                         <div
-                            onClick={() => setActiveFilter('LUNAS')}
-                            onDoubleClick={() => setActiveFilter(null)}
+                            onClick={() => setActiveFilter(prev => prev === 'LUNAS' ? null : 'LUNAS')}
                             className={`flex-1 bg-emerald-50 rounded-xl p-3 border cursor-pointer transition-all duration-200 transform-gpu backface-hidden select-none ${activeFilter === 'LUNAS' ? 'border-emerald-500 ring-2 ring-emerald-200 shadow-md scale-[1.02]' : 'border-emerald-100 hover:border-emerald-300'}`}
                         >
                             <span className="text-[10px] font-bold text-emerald-700 block mb-1 uppercase">Realisasi</span>
@@ -135,8 +135,7 @@ export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => v
 
                         {/* KARTU BELUM LUNAS / SISA */}
                         <div
-                            onClick={() => setActiveFilter('SISA')}
-                            onDoubleClick={() => setActiveFilter(null)}
+                            onClick={() => setActiveFilter(prev => prev === 'SISA' ? null : 'SISA')}
                             className={`flex-1 bg-amber-50 rounded-xl p-3 border cursor-pointer transition-all duration-200 transform-gpu backface-hidden select-none ${activeFilter === 'SISA' ? 'border-amber-500 ring-2 ring-amber-200 shadow-md scale-[1.02]' : 'border-amber-100 hover:border-amber-300'}`}
                         >
                             <span className="text-[10px] font-bold text-amber-700 block mb-1 uppercase">Sisa Piutang</span>
@@ -196,6 +195,22 @@ export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => v
                                             <span className="text-xs scale-90 origin-left leading-tight font-medium text-slate-600">Alamat lengkap pengiriman / tagihan konsumen</span>
                                         </div>
 
+                                        {/* RINCIAN BELANJA / ORDER */}
+                                        <div className="space-y-2 mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                            {inv.items.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-start">
+                                                    <div className="flex items-start gap-1">
+                                                        <span className="text-slate-400 text-xs mt-0.5 font-bold">-</span>
+                                                        <div>
+                                                            <p className="text-xs font-bold text-slate-700">{item.name}</p>
+                                                            <p className="text-[10px] text-slate-500 mt-0.5">{item.qty} x Rp {item.price}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-slate-700">Rp {item.total}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
                                         <div className="flex gap-2 mt-4">
                                             <button className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-slate-800 text-white hover:bg-slate-700 active:scale-95 transition-transform transform-gpu">
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
@@ -232,64 +247,151 @@ export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => v
                             </div>
 
                             <div className="overflow-y-auto hide-scrollbar">
-                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center mb-4">
-                                    <p className="text-xs font-bold text-slate-500 mb-1">TOTAL TAGIHAN INVOICE</p>
-                                    <p className="text-3xl font-black text-emerald-700">Rp 534.234</p>
-                                    <p className="text-[10px] font-mono text-slate-400 mt-1">INV - 123456789</p>
+                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center mb-5">
+                                    <p className="text-xs font-bold text-slate-500 mb-1 uppercase tracking-wide">TOTAL TAGIHAN INVOICE</p>
+                                    <p className="text-3xl font-black text-emerald-700 font-mono tracking-tight">Rp 534.234</p>
+                                    <p className="text-[10px] font-mono text-slate-400 mt-1 uppercase">INV - 123456789</p>
                                 </div>
 
-                                <div className="flex gap-2 mb-4">
+                                <div className="flex gap-2 mb-5">
                                     {['TUNAI', 'QRIS', 'Transfer'].map((method) => (
-                                        <button key={method} onClick={() => setPaymentMethod(method)} className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-colors flex justify-center items-center gap-1 ${paymentMethod === method ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:border-emerald-300'}`}>
+                                        <button
+                                            key={method}
+                                            onClick={() => setPaymentMethod(method)}
+                                            className={`flex-1 py-2.5 text-xs font-bold rounded-xl border-2 transition-all transform-gpu active:scale-95 flex justify-center items-center gap-1 ${paymentMethod === method ? 'bg-emerald-500 text-white border-emerald-600 shadow-sm' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-300'}`}
+                                        >
                                             {method}
                                         </button>
                                     ))}
                                 </div>
 
+                                {/* TAB: TUNAI */}
                                 {paymentMethod === 'TUNAI' && (
-                                    <div className="space-y-4">
-                                        <div><label className="text-xs font-bold text-slate-600 block mb-1">Uang Diterima</label><input type="text" placeholder="Rp" className="w-full border border-slate-300 rounded-lg p-3 text-slate-800 font-bold focus:outline-none focus:border-emerald-500" /></div>
+                                    <div className="space-y-4 animate-fadeIn">
+                                        <div>
+                                            <label className="text-xs font-bold text-slate-600 block mb-2">Uang Diterima</label>
+                                            <input type="text" placeholder="Rp" className="w-full border border-slate-300 rounded-xl p-3.5 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow" />
+                                        </div>
                                         <div className="grid grid-cols-3 gap-2">
-                                            <button className="bg-emerald-50 text-emerald-800 text-xs font-bold py-2 rounded-lg border border-emerald-200">Rp 550.000</button>
-                                            <button className="bg-emerald-50 text-emerald-800 text-xs font-bold py-2 rounded-lg border border-emerald-200">Rp 600.000</button>
-                                            <button className="bg-emerald-50 text-emerald-800 text-xs font-bold py-2 rounded-lg border border-emerald-200">Uang Pas</button>
+                                            <button className="bg-emerald-50 text-emerald-800 text-xs font-bold py-3 rounded-xl border border-emerald-200 active:scale-95 transition-transform transform-gpu">Rp 550.000</button>
+                                            <button className="bg-emerald-50 text-emerald-800 text-xs font-bold py-3 rounded-xl border border-emerald-200 active:scale-95 transition-transform transform-gpu">Rp 600.000</button>
+                                            <button className="bg-emerald-50 text-emerald-800 text-xs font-bold py-3 rounded-xl border border-emerald-200 active:scale-95 transition-transform transform-gpu">Uang Pas</button>
                                         </div>
                                     </div>
                                 )}
+
+                                {/* TAB: QRIS */}
                                 {paymentMethod === 'QRIS' && (
-                                    <div className="space-y-4">
-                                        <div><label className="text-xs font-bold text-slate-600 block mb-1">Pilih QRIS Tujuan</label><select className="w-full border border-slate-300 rounded-lg p-3 text-slate-800 font-bold bg-white outline-none"><option>YoriEgg Dana</option></select></div>
-                                    </div>
-                                )}
-                                {paymentMethod === 'Transfer' && (
-                                    <div className="space-y-4">
-                                        <div><label className="text-xs font-bold text-slate-600 block mb-1">Pilih Rekening Tujuan</label><div className="border border-slate-300 rounded-lg p-3 flex items-center gap-3 bg-white"><input type="radio" checked readOnly className="w-4 h-4 text-emerald-600" /><div><p className="text-sm font-bold text-slate-800">BCA</p><p className="text-xs text-indigo-600 font-bold">8465581987 <span className="text-slate-400 font-normal">(Windy Kusuma)</span></p></div></div></div>
+                                    <div className="space-y-4 animate-fadeIn">
+                                        <div className="border border-slate-200 rounded-2xl p-5 flex flex-col items-center justify-center bg-slate-50 shadow-sm">
+                                            <p className="text-xs font-bold text-slate-500 mb-3">Scan QRIS untuk Membayar</p>
+                                            <div className="w-48 h-48 bg-white border-2 border-dashed border-slate-300 rounded-xl flex items-center justify-center text-slate-400 font-bold shadow-sm relative overflow-hidden">
+                                                <svg className="w-24 h-24 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                            </div>
+                                            <p className="text-[10px] font-mono text-slate-400 mt-3 font-bold tracking-widest">YoriEgg Dana - A/N YoriPos</p>
+                                        </div>
                                     </div>
                                 )}
 
-                                <button className="w-full bg-emerald-500 text-white rounded-lg py-3 mt-6 text-sm font-bold shadow-md hover:bg-emerald-600 transform-gpu active:scale-95 transition-transform" onClick={() => setActiveModal('sukses_bayar')}>
+                                {/* TAB: TRANSFER */}
+                                {paymentMethod === 'Transfer' && (
+                                    <div className="space-y-4 animate-fadeIn">
+                                        <div>
+                                            <label className="text-xs font-bold text-slate-600 block mb-2">Transfer ke Rekening</label>
+                                            <div className="border border-slate-200 rounded-xl p-4 flex items-center gap-4 bg-white shadow-sm">
+                                                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black italic border border-indigo-100">BCA</div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-800">8465581987</p>
+                                                    <p className="text-xs text-slate-500 font-medium mt-0.5">A/N Windy Kusuma</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <button className="w-full bg-emerald-500 text-white rounded-xl py-4 mt-6 text-sm font-bold shadow-md hover:bg-emerald-600 transform-gpu active:scale-95 transition-transform tracking-wide" onClick={() => setActiveModal('sukses_bayar')}>
                                     SELESAIKAN PEMBAYARAN
                                 </button>
                             </div>
                         </div>
                     )}
 
+                    {/* STRUK CLEAN (PUTIH/ABU) */}
                     {activeModal === 'sukses_bayar' && (
-                        <div className="relative w-full max-w-md bg-emerald-600 rounded-t-3xl p-5 pb-28 shadow-2xl flex flex-col items-center animate-slideUp transform-gpu backface-hidden will-change-transform" style={{ maxHeight: '95vh' }}>
-                            <div className="w-12 h-1.5 bg-emerald-400 rounded-full mx-auto mb-4 shrink-0"></div>
-                            <button onClick={() => setActiveModal('none')} className="absolute top-4 right-4 bg-white/20 text-white rounded-full p-1"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                        <div className="absolute inset-0 z-50 bg-slate-50 flex flex-col items-center animate-slideUp transform-gpu backface-hidden will-change-transform overflow-y-auto">
+                            <div className="w-full flex justify-end p-4 sticky top-0 bg-slate-50 z-10">
+                                <button onClick={() => setActiveModal('none')} className="bg-white text-slate-500 hover:bg-slate-100 rounded-full p-2 shadow-sm border border-slate-200">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
 
-                            <h2 className="text-white text-xl font-bold mb-2 text-center">Piutang Berhasil Dilunasi!</h2>
-                            <p className="text-emerald-100 text-xs text-center mb-6">Cetak / Kirim Struk di bawah ini</p>
+                            <div className="px-6 w-full flex flex-col items-center">
+                                <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-3 shadow-sm border border-emerald-100">
+                                    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                                <h2 className="text-slate-800 text-xl font-black mb-1 text-center">Piutang Berhasil Dilunasi!</h2>
+                                <p className="text-slate-500 text-xs text-center mb-6">Cetak / Kirim Struk di bawah ini</p>
 
-                            <div className="bg-white w-full rounded-2xl p-6 shadow-2xl relative overflow-y-auto hide-scrollbar">
-                                <div className="text-center mb-6"><h1 className="text-2xl font-black text-indigo-700">Yori Egg</h1></div>
-                                <div className="border-t border-dashed border-slate-300 py-3 flex justify-between items-start"><div><p className="text-[10px] text-slate-500">No. Kwitansi</p><p className="text-xs font-bold text-indigo-700">KWI - 202606121452</p></div></div>
-                                <div className="mb-4 bg-emerald-50 rounded-lg p-3 border border-emerald-100"><p className="text-[10px] font-bold text-emerald-700 uppercase">Pelunasan Tagihan Piutang</p></div>
-                                <div className="border-t border-dashed border-slate-300 py-4 mb-2"><div className="flex justify-between items-center mb-2"><span className="text-xs font-bold text-slate-800">Total Dibayar</span><span className="text-lg font-black text-emerald-600">Rp 534.234</span></div></div>
-                                <div className="grid grid-cols-2 gap-2 mt-6">
-                                    <button className="bg-emerald-500 text-white rounded-lg py-2.5 text-xs font-bold shadow-sm transform-gpu active:scale-95 transition-transform">Print Struk</button>
-                                    <button className="bg-emerald-700 text-white rounded-lg py-2.5 text-xs font-bold shadow-sm transform-gpu active:scale-95 transition-transform">Kirim Struk</button>
+                                {/* KERTAS STRUK */}
+                                <div className="bg-white w-full rounded-2xl p-6 shadow-sm border border-slate-200 relative mb-10">
+                                    <div className="text-center mb-6">
+                                        <h1 className="text-2xl font-black text-indigo-700">Yori Egg</h1>
+                                        <p className="text-[10px] text-slate-500 mt-1">Telp: 085124243869<br />Minggiran, Yogyakarta</p>
+                                    </div>
+
+                                    <div className="border-t border-dashed border-slate-300 py-3 flex justify-between items-start">
+                                        <div>
+                                            <p className="text-[10px] text-slate-500">No. Kwitansi</p>
+                                            <p className="text-[11px] font-bold text-indigo-700 font-mono">KWI - {Date.now().toString().slice(-8)}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-slate-500">Tanggal</p>
+                                            <p className="text-[10px] font-bold text-slate-800">23 Jun 2026, 15:34</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <p className="text-[10px] text-slate-500">Pelanggan</p>
+                                            <p className="text-[11px] font-bold text-slate-800">Agam Warmindo</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-slate-500">Kasir</p>
+                                            <p className="text-[10px] font-bold text-slate-800">Admin</p>
+                                        </div>
+                                    </div>
+
+                                    {/* RINCIAN TAGIHAN */}
+                                    <div className="border-t border-dashed border-slate-300 pt-4 pb-2 mb-3">
+                                        <p className="text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-widest">Rincian Pembayaran</p>
+                                        <div className="mb-3">
+                                            <p className="text-xs font-bold text-slate-800">Pelunasan Tagihan (INV - 123456789)</p>
+                                            <div className="flex justify-between items-center mt-0.5">
+                                                <span className="text-[10px] text-slate-500 font-medium">1 Tagihan</span>
+                                                <span className="text-xs font-bold text-slate-800">Rp 534.234</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4 bg-emerald-50 rounded-lg p-3 border border-emerald-100 text-center">
+                                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Pembayaran Via {paymentMethod}</p>
+                                    </div>
+
+                                    <div className="border-t border-dashed border-slate-300 py-4 mb-2">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-bold text-slate-800">Total Dibayar</span>
+                                            <span className="text-xl font-black text-emerald-600 tracking-tight">Rp 534.234</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2 mt-6">
+                                        <button className="bg-slate-100 text-slate-700 rounded-xl py-3 text-xs font-bold border border-slate-200 transform-gpu active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg> Print Struk
+                                        </button>
+                                        <button className="bg-emerald-500 text-white rounded-xl py-3 text-xs font-bold shadow-sm transform-gpu active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> Kirim WA
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

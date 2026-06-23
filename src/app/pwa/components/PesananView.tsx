@@ -13,6 +13,7 @@ export default function PesananView({ onOpenKitchen, onOpenPos }: { onOpenKitche
     // Modal States (Slide-Up Bottom Sheets)
     const [activeModal, setActiveModal] = useState('none');
     const [paymentMethod, setPaymentMethod] = useState('TUNAI');
+    const [isPiutang, setIsPiutang] = useState(false); // Track status pembayaran Lunas vs Piutang
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -342,10 +343,25 @@ export default function PesananView({ onOpenKitchen, onOpenPos }: { onOpenKitche
                                 )}
 
                                 <div className="grid grid-cols-2 gap-2 mt-6">
-                                    <button className="w-full bg-amber-500 text-white rounded-lg py-3 text-sm font-bold shadow-md hover:bg-amber-600 transform-gpu active:scale-95 transition-transform" onClick={() => setActiveModal('sukses_bayar')}>
+                                    {/* Tombol Simpan Sebagai Piutang */}
+                                    <button
+                                        className="w-full bg-amber-500 text-white rounded-lg py-3 text-sm font-bold shadow-md hover:bg-amber-600 transform-gpu active:scale-95 transition-transform"
+                                        onClick={() => {
+                                            setIsPiutang(true);
+                                            setActiveModal('sukses_bayar');
+                                        }}
+                                    >
                                         PIUTANG
                                     </button>
-                                    <button className="w-full bg-emerald-500 text-white rounded-lg py-3 text-sm font-bold shadow-md hover:bg-emerald-600 transform-gpu active:scale-95 transition-transform" onClick={() => setActiveModal('sukses_bayar')}>
+
+                                    {/* Tombol Lunas */}
+                                    <button
+                                        className="w-full bg-emerald-500 text-white rounded-lg py-3 text-sm font-bold shadow-md hover:bg-emerald-600 transform-gpu active:scale-95 transition-transform"
+                                        onClick={() => {
+                                            setIsPiutang(false);
+                                            setActiveModal('sukses_bayar');
+                                        }}
+                                    >
                                         SELESAIKAN
                                     </button>
                                 </div>
@@ -353,22 +369,101 @@ export default function PesananView({ onOpenKitchen, onOpenPos }: { onOpenKitche
                         </div>
                     )}
 
+                    {/* STRUK CLEAN (PUTIH/ABU) */}
                     {activeModal === 'sukses_bayar' && (
-                        <div className="relative w-full max-w-md bg-emerald-600 rounded-t-3xl p-5 pb-28 shadow-2xl flex flex-col items-center animate-slideUp transform-gpu backface-hidden will-change-transform" style={{ maxHeight: '95vh' }}>
-                            <div className="w-12 h-1.5 bg-emerald-400 rounded-full mx-auto mb-4 shrink-0"></div>
-                            <button onClick={() => setActiveModal('none')} className="absolute top-4 right-4 bg-white/20 text-white rounded-full p-1"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                        <div className="absolute inset-0 z-50 bg-slate-50 flex flex-col items-center animate-slideUp transform-gpu backface-hidden will-change-transform overflow-y-auto">
+                            <div className="w-full flex justify-end p-4 sticky top-0 bg-slate-50 z-10">
+                                <button onClick={() => setActiveModal('none')} className="bg-white text-slate-500 hover:bg-slate-100 rounded-full p-2 shadow-sm border border-slate-200">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                            </div>
 
-                            <h2 className="text-white text-xl font-bold mb-2 text-center">Pesanan Selesai!</h2>
-                            <p className="text-emerald-100 text-xs text-center mb-6">Cetak / Kirim Struk di bawah ini</p>
+                            <div className="px-6 w-full flex flex-col items-center">
+                                {/* Ikon beda warna tergantung Lunas / Piutang */}
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-sm border ${isPiutang ? 'bg-amber-50 text-amber-500 border-amber-100' : 'bg-emerald-50 text-emerald-500 border-emerald-100'}`}>
+                                    {isPiutang ? (
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    ) : (
+                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                    )}
+                                </div>
+                                <h2 className="text-slate-800 text-xl font-black mb-1 text-center">
+                                    {isPiutang ? 'Disimpan ke Piutang!' : 'Pesanan Selesai!'}
+                                </h2>
+                                <p className="text-slate-500 text-xs text-center mb-6">Cetak / Kirim Struk di bawah ini</p>
 
-                            <div className="bg-white w-full rounded-2xl p-6 shadow-2xl relative overflow-y-auto hide-scrollbar">
-                                <div className="text-center mb-6"><h1 className="text-2xl font-black text-indigo-700">Yori Egg</h1></div>
-                                <div className="border-t border-dashed border-slate-300 py-3 flex justify-between items-start"><div><p className="text-[10px] text-slate-500">No. Kwitansi</p><p className="text-xs font-bold text-indigo-700">KWI - 202606121452</p></div></div>
-                                <div className="mb-4 bg-emerald-50 rounded-lg p-3 border border-emerald-100"><p className="text-[10px] font-bold text-emerald-700 uppercase">Pelunasan Pesanan ({paymentMethod})</p></div>
-                                <div className="border-t border-dashed border-slate-300 py-4 mb-2"><div className="flex justify-between items-center mb-2"><span className="text-xs font-bold text-slate-800">Total Dibayar</span><span className="text-lg font-black text-emerald-600">Rp 12.000</span></div></div>
-                                <div className="grid grid-cols-2 gap-2 mt-6">
-                                    <button className="bg-emerald-500 text-white rounded-lg py-2.5 text-xs font-bold shadow-sm transform-gpu active:scale-95 transition-transform">Print Struk</button>
-                                    <button className="bg-emerald-700 text-white rounded-lg py-2.5 text-xs font-bold shadow-sm transform-gpu active:scale-95 transition-transform">Kirim Struk</button>
+                                {/* KERTAS STRUK */}
+                                <div className="bg-white w-full rounded-2xl p-6 shadow-sm border border-slate-200 relative mb-10">
+                                    <div className="text-center mb-6">
+                                        <h1 className="text-2xl font-black text-indigo-700">Yori Egg</h1>
+                                        <p className="text-[10px] text-slate-500 mt-1">Telp: 085124243869<br />Minggiran, Yogyakarta</p>
+                                    </div>
+
+                                    <div className="border-t border-dashed border-slate-300 py-3 flex justify-between items-start">
+                                        <div>
+                                            <p className="text-[10px] text-slate-500">No. Kwitansi</p>
+                                            <p className="text-[11px] font-bold text-indigo-700 font-mono">KWI - {Date.now().toString().slice(-8)}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-slate-500">Tanggal</p>
+                                            <p className="text-[10px] font-bold text-slate-800">23 Jun 2026, 15:36</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <p className="text-[10px] text-slate-500">Pelanggan</p>
+                                            <p className="text-[11px] font-bold text-slate-800">Lisa Untari</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-slate-500">Kasir</p>
+                                            <p className="text-[10px] font-bold text-slate-800">Admin</p>
+                                        </div>
+                                    </div>
+
+                                    {/* RINCIAN BELANJA */}
+                                    <div className="border-t border-dashed border-slate-300 pt-4 pb-2 mb-3">
+                                        <p className="text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-widest">Rincian Belanja</p>
+
+                                        <div className="mb-3">
+                                            <p className="text-xs font-bold text-slate-800">Menu Paket A</p>
+                                            <div className="flex justify-between items-center mt-0.5">
+                                                <span className="text-[10px] text-slate-500 font-medium">1 x Rp 5.000</span>
+                                                <span className="text-xs font-bold text-slate-800">Rp 5.000</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="mb-3">
+                                            <p className="text-xs font-bold text-slate-800">Menu Paket B</p>
+                                            <div className="flex justify-between items-center mt-0.5">
+                                                <span className="text-[10px] text-slate-500 font-medium">1 x Rp 7.000</span>
+                                                <span className="text-xs font-bold text-slate-800">Rp 7.000</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* STATUS PEMBAYARAN BOX */}
+                                    <div className={`mb-4 rounded-lg p-3 border text-center ${isPiutang ? 'bg-amber-50 border-amber-100' : 'bg-emerald-50 border-emerald-100'}`}>
+                                        <p className={`text-[10px] font-bold uppercase tracking-widest ${isPiutang ? 'text-amber-700' : 'text-emerald-700'}`}>
+                                            {isPiutang ? 'Dimasukkan Ke Piutang' : `Pelunasan Pesanan (${paymentMethod})`}
+                                        </p>
+                                    </div>
+
+                                    <div className="border-t border-dashed border-slate-300 py-4 mb-2">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-bold text-slate-800">Total Tagihan</span>
+                                            <span className="text-xl font-black text-emerald-600 tracking-tight">Rp 12.000</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2 mt-6">
+                                        <button className="bg-slate-100 text-slate-700 rounded-xl py-3 text-xs font-bold border border-slate-200 transform-gpu active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg> Print Struk
+                                        </button>
+                                        <button className="bg-emerald-500 text-white rounded-xl py-3 text-xs font-bold shadow-sm transform-gpu active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> Kirim WA
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
