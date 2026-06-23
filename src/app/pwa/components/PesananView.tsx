@@ -174,7 +174,8 @@ export default function PesananView() {
                     {/* AMBIL TOKO */}
                     <div
                         onClick={() => handleFilterClick('AMBIL_TOKO')}
-                        className={`flex-1 bg-[#E8F8F5] rounded-xl p-3 cursor-pointer transition-all duration-200 border ${filterType === 'AMBIL_TOKO' ? 'border-[#10B981] shadow-sm bg-[#D1F2EB] scale-[1.02]' : 'border-[#10B981]/20 hover:border-[#10B981]/50'}`}
+                        // Tambahan transform-gpu dan backface-hidden di sini 👇
+                        className={`flex-1 rounded-xl p-3 cursor-pointer transition-all duration-200 transform-gpu backface-hidden border ${filterType === 'AMBIL_TOKO' ? 'border-[#10B981] shadow-sm bg-[#D1F2EB] scale-[1.02]' : 'bg-[#E8F8F5] border-[#10B981]/20 hover:border-[#10B981]/50'}`}
                     >
                         <div className="w-6 h-6 text-[#10B981] mb-2"><svg fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg></div>
                         <span className="text-[11px] font-medium text-gray-800 block mb-1">AMBIL TOKO</span>
@@ -185,7 +186,8 @@ export default function PesananView() {
                     {/* DELIVERY */}
                     <div
                         onClick={() => handleFilterClick('DELIVERY')}
-                        className={`flex-1 bg-[#FFF8E1] rounded-xl p-3 cursor-pointer transition-all duration-200 border ${filterType === 'DELIVERY' ? 'border-[#F59E0B] shadow-sm scale-[1.02]' : 'border-[#F59E0B]/20 hover:border-[#F59E0B]/50'}`}
+                        // Tambahan transform-gpu dan backface-hidden di sini 👇
+                        className={`flex-1 rounded-xl p-3 cursor-pointer transition-all duration-200 transform-gpu backface-hidden border ${filterType === 'DELIVERY' ? 'border-[#F59E0B] shadow-sm bg-[#FFF8E1] scale-[1.02]' : 'bg-[#FFF8E1] border-[#F59E0B]/20 hover:border-[#F59E0B]/50'}`}
                     >
                         <div className="w-6 h-6 text-[#F59E0B] mb-2"><svg fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" /></svg></div>
                         <span className="text-[11px] font-medium text-gray-800 block mb-1">DELIVERY</span>
@@ -243,7 +245,7 @@ export default function PesananView() {
                                                     {trx.status}
                                                 </span>
                                             </div>
-                                            <div className={`w-7 h-7 bg-[#E8F8F5] text-[#10B981] rounded-lg flex items-center justify-center transition-transform duration-200 ${isExpanded ? 'rotate-180 bg-emerald-200' : ''}`}>
+                                            <div className={`w-7 h-7 bg-[#E8F8F5] text-[#10B981] rounded-lg flex items-center justify-center transition-transform duration-200 transform-gpu backface-hidden ${isExpanded ? 'rotate-180 bg-emerald-200' : ''}`}>
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                             </div>
                                         </div>
@@ -317,7 +319,7 @@ export default function PesananView() {
 
                     {/* 1. BOTTOM SHEET : P R O S E S   P E S A N A N */}
                     {activeModal === 'proses' && (
-                        <div className="relative w-full max-w-md bg-[#10B981] rounded-t-3xl p-5 pb-28 shadow-2xl animate-slideUp flex flex-col" style={{ maxHeight: '90vh' }}>
+                        <div className="relative w-full max-w-md bg-[#10B981] rounded-t-3xl p-5 pb-28 shadow-2xl animate-slideUp transform-gpu backface-hidden will-change-transform flex flex-col" style={{ maxHeight: '90vh' }}>
                             <div className="w-12 h-1.5 bg-emerald-300 rounded-full mx-auto mb-4 shrink-0"></div>
 
                             <div className="flex justify-between items-center mb-4 text-white shrink-0">
