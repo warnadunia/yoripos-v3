@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
-export default function DashboardView({ onOpenPos, onOpenKitchen }: { onOpenPos: () => void, onOpenKitchen?: () => void }) {
+export default function DashboardView({ onOpenPos, onOpenKitchen, onOpenSidebar }: { onOpenPos: () => void, onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
     const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState('JUN');
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -68,7 +68,7 @@ export default function DashboardView({ onOpenPos, onOpenKitchen }: { onOpenPos:
 
                 {/* NAVBAR ATAS & KITCHEN NOTIF */}
                 <div className="flex justify-between items-center px-4 py-3 text-white">
-                    <button className="hover:opacity-80 transition-opacity">
+                    <button onClick={onOpenSidebar} className="hover:opacity-80 transition-opacity">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                     <h1 className="text-lg font-bold tracking-wide">Dashboard</h1>

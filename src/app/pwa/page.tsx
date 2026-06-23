@@ -8,7 +8,8 @@ import PesananView from './components/PesananView';
 import PiutangView from './components/PiutangView';
 import BiayaView from './components/BiayaView';
 import PosView from './components/PosView';
-import KitchenView from './components/KitchenView'; // JANGAN LUPA IMPORT INI
+import KitchenView from './components/KitchenView';
+import SidebarMenu from './components/SidebarMenu';
 
 // Dummy Komponen untuk tab yang belum dibikin
 const DummyView = ({ title }: { title: string }) => (
@@ -16,15 +17,14 @@ const DummyView = ({ title }: { title: string }) => (
 );
 
 export default function PwaMainContainer() {
-  // Default tab saat pertama kali render
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isPosOpen, setIsPosOpen] = useState(false);
-
-  // STATE BARU UNTUK KITCHEN
   const [isKitchenOpen, setIsKitchenOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     <>
+      <SidebarMenu isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       {/* Tumpukan Layar Full Screen (Prioritas Tertinggi) */}
       {isPosOpen && <PosView onBack={() => setIsPosOpen(false)} />}
       {isKitchenOpen && <KitchenView onBack={() => setIsKitchenOpen(false)} />}
@@ -40,27 +40,32 @@ export default function PwaMainContainer() {
               <DashboardView
                 onOpenKitchen={() => setIsKitchenOpen(true)}
                 onOpenPos={() => setIsPosOpen(true)}
+                onOpenSidebar={() => setIsSidebarOpen(true)}
               />
             )}
             {activeTab === 'transaksi' && (
               <RiwayatView
                 onOpenKitchen={() => setIsKitchenOpen(true)}
+                onOpenSidebar={() => setIsSidebarOpen(true)}
               />
             )}
             {activeTab === 'pesanan' && (
               <PesananView
                 onOpenKitchen={() => setIsKitchenOpen(true)}
                 onOpenPos={() => setIsPosOpen(true)}
+                onOpenSidebar={() => setIsSidebarOpen(true)}
               />
             )}
             {activeTab === 'piutang' && (
               <PiutangView
                 onOpenKitchen={() => setIsKitchenOpen(true)}
+                onOpenSidebar={() => setIsSidebarOpen(true)}
               />
             )}
             {activeTab === 'biaya' && (
               <BiayaView
                 onOpenKitchen={() => setIsKitchenOpen(true)}
+                onOpenSidebar={() => setIsSidebarOpen(true)}
               />
             )}
           </div>

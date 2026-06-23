@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => void }) {
+// export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => void }) {
+export default function PiutangView({ onOpenPos, onOpenKitchen, onOpenSidebar }: { onOpenPos: () => void, onOpenKitchen?: () => void, onOpenSidebar: () => void }) {
     const [selectedYear, setSelectedYear] = useState('2026');
 
     // Otomatis deteksi bulan berjalan (0 = Jan, 11 = Des)
@@ -56,7 +57,7 @@ export default function PiutangView({ onOpenKitchen }: { onOpenKitchen?: () => v
 
                 {/* NAVBAR DENGAN KITCHEN NOTIF */}
                 <div className="flex justify-between items-center p-4 text-white">
-                    <button className="hover:opacity-80 transition-opacity"><svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg></button>
+                    <button onClick={onOpenSidebar} className="hover:opacity-80 transition-opacity"><svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg></button>
                     <h1 className="text-lg font-bold tracking-wide">Monitoring Piutang</h1>
                     <button onClick={onOpenKitchen} className="relative w-10 h-10 rounded-xl border border-emerald-400 flex items-center justify-center hover:bg-emerald-600 transition-colors transform-gpu active:scale-95">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
