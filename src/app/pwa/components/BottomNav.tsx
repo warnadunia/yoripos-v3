@@ -17,21 +17,23 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 px-2 py-2 flex justify-between items-center z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] max-w-md mx-auto right-0">
+        <div className="fixed bottom-0 left-0 w-[96%] bg-card border-t border-border px-2 py-2 flex justify-between items-center z-50 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_15px_rgba(0,0,0,0.3)] max-w-full mx-auto right-0 rounded-3xl h-20 transition-colors duration-200">
             {navItems.map((item) => {
                 const isActive = activeTab === item.id;
                 return (
                     <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
-                        className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${isActive ? 'text-emerald-500' : 'text-gray-400 hover:text-gray-600'}`}
+                        className={`mb-4 flex flex-col items-center justify-center flex-1 py-1 transition-all ${isActive ? 'text-accent' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        <div className={`mb-1 p-1.5 rounded-xl transition-all ${isActive ? 'bg-emerald-500 text-white shadow-sm' : 'bg-transparent'}`}>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        {/* Wrapper Icon */}
+                        <div className={`p-2 rounded-sm transition-all duration-200 ${isActive ? 'bg-accent text-accent-foreground shadow-sm shadow-accent/20 fixed bottom-10 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_15px_rgba(0,0,0,0.3)]' : 'bg-transparent'}`}>
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                             </svg>
                         </div>
-                        <span className={`text-xs font-medium scale-75 origin-top ${isActive ? 'text-emerald-600 font-bold' : ''}`}>
+                        {/* Label Text */}
+                        <span className={`text-xs font-medium scale-70 origin-top transition-all duration-200 ${isActive ? 'text-accent font-bold fixed bottom-4' : ''}`}>
                             {item.label}
                         </span>
                     </button>

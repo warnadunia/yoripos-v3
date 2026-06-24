@@ -13,7 +13,7 @@
     --color-card-foreground: #1c1917;
     --color-primary: #292524;
     --color-primary-foreground: #fafaf9;
-    --color-accent: #059669;
+    --color-accent: #059669; /* Fallback default: Emerald */
     --color-accent-foreground: #fafaf9;
     --color-destructive: #dc2626;
     --color-destructive-foreground: #fafaf9;
@@ -23,13 +23,23 @@
     --radius-xl: 1.25rem;
   }
 
+  /* ========================================================= */
+  /* ULTRA-SPECIFICITY FIX: PAKAI SELECTOR BERLAPIS AGAR LOCK LIGHT MODE JEBOL */
+  /* ========================================================= */
+  html[class*="theme-emerald"], :root.theme-emerald { --color-accent: #0aad7c !important; }
+  html[class*="theme-blue"], :root.theme-blue       { --color-accent: #21a6ce !important; }
+  html[class*="theme-rose"], :root.theme-rose       { --color-accent: #f43f5e !important; }
+  html[class*="theme-amber"], :root.theme-amber     { --color-accent: #ffd900 !important; }
+  html[class*="theme-indigo"], :root.theme-indigo   { --color-accent: #b51adb !important; }
+
+  /* Konfigurasi Default Base untuk Dark Mode */
   .dark {
-    --color-background: #0c0a09;
+    --color-background: #18191b;
     --color-foreground: #f5f5f4;
-    --color-muted: #1c1917;
+    --color-muted: #1c1b1f;
     --color-muted-foreground: #a8a29e;
     --color-border: #292524;
-    --color-card: #1c1917;
+    --color-card: #26272b;
     --color-card-foreground: #f5f5f4;
     --color-primary: #f5f5f4;
     --color-primary-foreground: #1c1917;
@@ -38,6 +48,13 @@
     --color-destructive: #ef4444;
     --color-destructive-foreground: #fafaf9;
   }
+
+  /* Penyesuaian Varian Aksen Khusus saat Dark Mode Aktif */
+  html.dark[class*="theme-emerald"], .dark.theme-emerald { --color-accent: #10b981 !important; }
+  html.dark[class*="theme-blue"], .dark.theme-blue       { --color-accent: #60a5fa !important; }
+  html.dark[class*="theme-rose"], .dark.theme-rose       { --color-accent: #fb7185 !important; }
+  html.dark[class*="theme-amber"], .dark.theme-amber     { --color-accent: #fbbf24 !important; }
+  html.dark[class*="theme-indigo"], .dark.theme-indigo   { --color-accent: #818cf8 !important; }
 
   * {
     border-color: var(--color-border);
