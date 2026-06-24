@@ -154,12 +154,12 @@ export default function DashboardView({ onOpenPos, onOpenKitchen, onOpenSidebar 
             {/* ========================================= */}
             {/* 3. QUICK MENU AKSES                       */}
             {/* ========================================= */}
-            <div className="mx-4 mt-5 bg-accent text-accent-foreground rounded-3xl p-5 shadow-sm overflow-hidden transition-all duration-300">
+            <div className="mx-4 -mt-6 bg-accent text-accent-foreground rounded-b-3xl p-5 shadow-sm overflow-hidden transition-all duration-300">
                 <button
                     onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
-                    className="w-full flex justify-between items-center active:opacity-70 transition-colors"
+                    className="w-full flex justify-between items-center active:opacity-70 transition-colors transform-gpu mt-4"
                 >
-                    <span className="text-sm font-bold">Quick Menu Akses</span>
+                    <span className="text-xs font-bold">Quick Menu Akses</span>
                     <svg className={`w-5 h-5 transition-transform duration-300 ${isQuickMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                 </button>
 
