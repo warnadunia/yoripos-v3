@@ -94,7 +94,7 @@ export default function DashboardView({ onOpenPos, onOpenKitchen, onOpenSidebar 
                         className="bg-amber-400 hover:opacity-90 text-foreground text-xs font-bold py-2 px-3 rounded-xl shadow-md flex items-center gap-1 active:scale-95 transition-all transform-gpu border border-border"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-                        Order<br />Baru
+                        KASIR
                     </button>
                 </div>
             </div>
@@ -182,7 +182,7 @@ export default function DashboardView({ onOpenPos, onOpenKitchen, onOpenSidebar 
             {/* ========================================= */}
             {/* 4. STATISTIK CASHFLOW & KARTU BULANAN     */}
             {/* ========================================= */}
-            <div className="mx-4 mt-5 bg-card border border-border text-card-foreground rounded-3xl p-5 shadow-sm transition-colors duration-200">
+        <div className="mx-4 mt-5 bg-card border border-border text-card-foreground rounded-3xl p-5 shadow-sm transition-colors duration-200">
                 <div className="flex justify-between items-center mb-5">
                     <h3 className="text-sm font-bold">Statistik Cashflow</h3>
                     <div className="flex gap-2 text-[9px] font-bold">
@@ -292,7 +292,7 @@ export default function DashboardView({ onOpenPos, onOpenKitchen, onOpenSidebar 
                             </div>
                             <div className="text-right">
                                 <p className="text-[7px] font-bold text-muted-foreground mb-0.5 bg-muted px-1.5 py-0.5 rounded border border-border inline-block tracking-widest">TOTAL BELANJA</p>
-                                <p className="text-[11px] font-black font-mono">Rp {item.total}</p>
+                                <p className="text-[12px] font-black font-mono">Rp {item.total}</p>
                             </div>
                         </div>
                     ))}
